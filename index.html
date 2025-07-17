@@ -139,18 +139,25 @@
             flex-wrap: wrap; /* Allow wrapping on mobile */
         }
 
+        /* --- MODIFIED for mobile menu --- */
+        .nav-tabs-wrapper { /* New wrapper for desktop tabs, allowing mobile stacking */
+            display: flex;
+            flex-grow: 1;
+        }
+
         .nav-tabs {
             display: flex;
             list-style: none;
             margin: 0;
             padding: 0;
-            overflow-x: auto; /* Enable horizontal scrolling */
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
-            -ms-overflow-style: -ms-autohiding-scrollbar; /* For IE/Edge */
-            white-space: nowrap; /* Keep all tabs in one line */
-            flex-grow: 1; /* Allow tabs to take available space */
+            /* For desktop, enable horizontal scrolling if tabs get too many */
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+            -ms-overflow-style: -ms-autohiding-scrollbar;
+            white-space: nowrap; 
+            flex-grow: 1; 
             border-bottom: 3px solid transparent; 
-            max-width: 100%; /* Ensure it doesn't overflow */
+            max-width: 100%; 
         }
         
         /* Scrollbar styles for webkit browsers */
@@ -560,17 +567,33 @@
                 align-items: flex-start; /* Align contents to start */
                 padding: 0; /* Remove horizontal padding here, let nav-tabs handle it */
             }
+            .nav-tabs-wrapper { /* Ensure wrapper handles stacking */
+                flex-direction: column;
+                width: 100%;
+            }
             .nav-tabs {
-                width: 100%; /* Take full width for scrolling */
+                width: 100%; /* Take full width */
+                flex-direction: column; /* Stack tabs vertically */
                 justify-content: flex-start;
-                padding: 0 15px; /* Horizontal padding for scrollable area */
+                padding: 0; /* No horizontal padding needed here */
                 margin-bottom: 10px; /* Space below tabs */
-                flex-wrap: nowrap; /* Ensure no wrapping, only scrolling */
+                white-space: normal; /* Allow text to wrap naturally */
+                border-bottom: none; /* Remove bottom border */
             }
             .nav-tabs li {
-                font-size: 13px;
-                padding: 10px 12px;
+                font-size: 15px; /* Slightly larger for readability */
+                padding: 12px 15px; /* Adjust padding */
+                border-bottom: 1px solid var(--border-color); /* Add subtle separator */
+                width: 100%; /* Make each tab take full width */
+                box-sizing: border-box; /* Include padding in width */
             }
+            .nav-tabs li.active {
+                border-bottom: 1px solid var(--primary-color); /* Maintain active border */
+            }
+            .nav-tabs li:last-child {
+                border-bottom: none; /* No border on last item */
+            }
+
             .logout-btn-container {
                 width: 100%;
                 justify-content: center;
@@ -624,11 +647,11 @@
                 display: block;
             }
             .nav-tabs-container {
-                display: none;
+                display: none; /* Hidden by default on mobile */
                 width: 100%;
             }
             .nav-tabs-container.show {
-                display: block;
+                display: block; /* Show when toggle is active */
             }
         }
     </style>
@@ -660,14 +683,15 @@
             </button>
             
             <div class="nav-tabs-container" id="nav-tabs-container">
-                <ul class="nav-tabs">
-                    <li data-tab="dashboard-tab"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
-                    <li data-tab="transaction-tab" class="active"><i class="fas fa-exchange-alt"></i> Transaksi</li>
-                    <li data-tab="master-data-tab"><i class="fas fa-users"></i> Master Data</li>
-                    <li data-tab="report-tab"><i class="fas fa-file-alt"></i> Laporan</li>
-                    <li data-tab="bank-accounts-tab"><i class="fas fa-university"></i> Saldo Bank</li>
-                    <li data-tab="settings-tab"><i class="fas fa-cog"></i> Pengaturan</li>
-                </ul>
+                <div class="nav-tabs-wrapper"> <ul class="nav-tabs">
+                        <li data-tab="dashboard-tab"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+                        <li data-tab="transaction-tab" class="active"><i class="fas fa-exchange-alt"></i> Transaksi</li>
+                        <li data-tab="master-data-tab"><i class="fas fa-users"></i> Master Data</li>
+                        <li data-tab="report-tab"><i class="fas fa-file-alt"></i> Laporan</li>
+                        <li data-tab="bank-accounts-tab"><i class="fas fa-university"></i> Saldo Bank</li>
+                        <li data-tab="settings-tab"><i class="fas fa-cog"></i> Pengaturan</li>
+                    </ul>
+                </div>
                 <div class="logout-btn-container">
                     <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
                 </div>
