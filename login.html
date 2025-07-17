@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Aplikasi Roda Toko</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script> <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        .login-container h2 {
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-size: 2rem;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #3498db;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        #error-message {
+            color: #e74c3c;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login Aplikasi</h2>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" class="form-control" placeholder="Masukkan email">
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" class="form-control" placeholder="Masukkan password">
+        </div>
+        <button id="login-btn" class="btn"><i class="fas fa-sign-in-alt"></i> Login</button>
+        <p id="error-message"></p>
+    </div>
+
+    <script>
+        // =====================
+        // FIREBASE CONFIGURATION (Harus sama dengan index.html)
+        // =====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8X6HvqWk7Jv0JgZ5d5X7Z0XZv0XZv0XZ", // GANTI DENGAN API KEY ASLI ANDA
+            authDomain: "transaksi-app-12345.firebaseapp.com", // GANTI DENGAN DOMAIN ASLI ANDA
+            databaseURL: "https://transaksi-app-12345-default-rtdb.asia-southeast1.firebasedatabase.app", // GANTI DENGAN URL DATABASE ASLI ANDA
+            projectId: "transaksi-app-12345", // GANTI DENGAN PROJECT ID ASLI ANDA
+            storageBucket: "transaksi-app-12345.appspot.com", // GANTI DENGAN STORAGE BUCKET ASLI ANDA
+            messagingSenderId: "123456789012", // GANTI DENGAN SENDER ID ASLI ANDA
+            appId: "1:123456789012:web:abcdef1234567890" // GANTI DENGAN APP ID ASLI ANDA
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(); // Inisialisasi Firebase Auth
+
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('login-btn');
+        const errorMessage = document.getElementById('error-message');
+
+        // Cek status login saat halaman dimuat
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Jika sudah login, redirect ke halaman utama
+                window.location.href = 'index.html';
+            }
+        });
+
+        loginBtn.addEventListener('click', () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                errorMessage.textContent = 'Email dan password harus diisi!';
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Berhasil login
+                    console.log('User logged in:', userCredential.user);
+                    // Redirect ke halaman utama setelah login berhasil
+                    window.location.href = 'index.html';
+                })
+                .catch((error) => {
+                    // Gagal login
+                    let message = 'Terjadi kesalahan saat login.';
+                    switch (error.code) {
+                        case 'auth/invalid-email':
+                            message = 'Format email tidak valid.';
+                            break;
+                        case 'auth/user-disabled':
+                            message = 'Akun pengguna dinonaktifkan.';
+                            break;
+                        case 'auth/user-not-found':
+                            message = 'Pengguna tidak ditemukan.';
+                            break;
+                        case 'auth/wrong-password':
+                            message = 'Password salah.';
+                            break;
+                        default:
+                            message = error.message;
+                    }
+                    errorMessage.textContent = message;
+                    console.error('Login error:', error);
+                });
+        });
+
+        // Menambahkan event listener untuk Enter key
+        emailInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                passwordInput.focus();
+            }
+        });
+
+        passwordInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                loginBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

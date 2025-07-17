@@ -1,0 +1,21 @@
+{
+  "name": "Aplikasi Laporan Transaksi Roda Toko",
+  "short_name": "Roda Toko",
+  "description": "Aplikasi untuk mencatat laporan transaksi supplier dan customer.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3498db",
+  "icons": [
+    {
+      "src": "/logo192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
