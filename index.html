@@ -7,9 +7,11 @@
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#2196F3">
-    <link rel="apple-touch-icon" href="/logo192.png"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="apple-touch-icon" href="/logo192.png"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
@@ -134,6 +136,7 @@
             align-items: center;
             padding: 0 15px; 
             flex-grow: 1;
+            flex-wrap: wrap; /* Allow wrapping on mobile */
         }
 
         .nav-tabs {
@@ -147,6 +150,7 @@
             white-space: nowrap; /* Keep all tabs in one line */
             flex-grow: 1; /* Allow tabs to take available space */
             border-bottom: 3px solid transparent; 
+            max-width: 100%; /* Ensure it doesn't overflow */
         }
         
         /* Scrollbar styles for webkit browsers */
@@ -171,6 +175,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 14px; /* Slightly smaller font */
         }
 
         .nav-tabs li:hover:not(.active) {
@@ -183,6 +188,13 @@
             background-color: var(--light-bg);
         }
 
+        .logout-btn-container {
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+            margin-left: 10px;
+        }
+
         .logout-btn {
             background-color: var(--danger-color);
             color: white;
@@ -192,11 +204,10 @@
             cursor: pointer;
             font-size: 0.85em; 
             transition: background-color 0.3s ease;
-            margin-left: 15px; 
-            flex-shrink: 0; /* Prevent from shrinking */
             display: flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap; /* Prevent text wrapping */
         }
 
         .logout-btn:hover {
@@ -545,10 +556,16 @@
                 font-size: 13px;
                 padding: 10px 12px;
             }
+            .logout-btn-container {
+                width: 100%;
+                justify-content: center;
+                margin: 10px 0;
+            }
             .logout-btn {
-                margin: 0 15px 10px 15px; /* Margin bottom for separation */
-                width: calc(100% - 30px); /* Fill width with margin */
-                text-align: center; /* Center text in button */
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+                margin: 0;
             }
 
             .form-group input, .form-group textarea, .form-group select {
@@ -570,6 +587,34 @@
                 font-size: 0.9em; /* Smaller font */
             }
             /* You might choose to hide some columns or make them scrollable */
+        }
+        
+        /* Mobile menu toggle button */
+        .mobile-menu-toggle {
+            display: none;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2em;
+            margin: 10px 0;
+            width: 100%;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+            .nav-tabs-container {
+                display: none;
+                width: 100%;
+            }
+            .nav-tabs-container.show {
+                display: block;
+            }
         }
     </style>
 </head>
@@ -595,15 +640,23 @@
 
     <nav>
         <div class="container">
-            <ul class="nav-tabs">
-                <li data-tab="dashboard-tab"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
-                <li data-tab="transaction-tab" class="active"><i class="fas fa-exchange-alt"></i> Transaksi</li>
-                <li data-tab="master-data-tab"><i class="fas fa-users"></i> Master Data</li>
-                <li data-tab="report-tab"><i class="fas fa-file-alt"></i> Laporan</li>
-                <li data-tab="bank-accounts-tab"><i class="fas fa-university"></i> Saldo Bank</li>
-                <li data-tab="settings-tab"><i class="fas fa-cog"></i> Pengaturan</li>
-            </ul>
-            <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                <i class="fas fa-bars"></i> Menu
+            </button>
+            
+            <div class="nav-tabs-container" id="nav-tabs-container">
+                <ul class="nav-tabs">
+                    <li data-tab="dashboard-tab"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+                    <li data-tab="transaction-tab" class="active"><i class="fas fa-exchange-alt"></i> Transaksi</li>
+                    <li data-tab="master-data-tab"><i class="fas fa-users"></i> Master Data</li>
+                    <li data-tab="report-tab"><i class="fas fa-file-alt"></i> Laporan</li>
+                    <li data-tab="bank-accounts-tab"><i class="fas fa-university"></i> Saldo Bank</li>
+                    <li data-tab="settings-tab"><i class="fas fa-cog"></i> Pengaturan</li>
+                </ul>
+                <div class="logout-btn-container">
+                    <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -854,6 +907,7 @@
                      <div class="btn-group">
                         <button id="generate-bank-report-btn" class="btn btn-primary"><i class="fas fa-search"></i> Buat Laporan Bank</button>
                         <button id="download-bank-pdf-btn" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Unduh PDF Bank</button>
+                        <button id="share-bank-whatsapp-btn" class="btn btn-info"><i class="fab fa-whatsapp"></i> Share WhatsApp</button>
                      </div>
                 </div>
 
@@ -961,6 +1015,8 @@
         const headerStoreAddress = document.getElementById('header-store-address');
         const appLogo = document.getElementById('app-logo'); // Div for logo container
         const currentDatePicker = document.getElementById('current-date');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const navTabsContainer = document.getElementById('nav-tabs-container');
 
         // Transaction Tab Elements
         const transactionDateInput = document.getElementById('transaction-date');
@@ -1009,6 +1065,7 @@
         const bankReportAccountSelect = document.getElementById('bank-report-account-select');
         const generateBankReportBtn = document.getElementById('generate-bank-report-btn');
         const downloadBankPdfBtn = document.getElementById('download-bank-pdf-btn');
+        const shareBankWhatsappBtn = document.getElementById('share-bank-whatsapp-btn');
         const bankOutstandingReportBody = document.getElementById('bank-outstanding-report-body');
         const totalBankDebetPeriod = document.getElementById('total-bank-debet-period');
         const totalBankKreditPeriod = document.getElementById('total-bank-kredit-period');
@@ -1056,6 +1113,11 @@
         }
         updateCurrentDate();
 
+        // Mobile menu toggle
+        mobileMenuToggle.addEventListener('click', () => {
+            navTabsContainer.classList.toggle('show');
+        });
+
         // --- Tab Navigation Logic ---
         const navTabs = document.querySelectorAll('.nav-tabs li');
         const tabPanes = document.querySelectorAll('.tab-pane');
@@ -1069,6 +1131,9 @@
                 // Add active class to clicked tab and corresponding pane
                 tab.classList.add('active');
                 document.getElementById(tab.dataset.tab).classList.add('active');
+
+                // Hide mobile menu after selection
+                navTabsContainer.classList.remove('show');
 
                 // Trigger specific load functions when a tab is activated
                 const activeTabId = tab.dataset.tab;
@@ -1568,26 +1633,57 @@
         filterMasterDataType.addEventListener('change', generateReport); // Filter report by master data type
         filterByNameInput.addEventListener('input', generateReport); // Filter report by name input
 
-        // Export to Excel (Placeholder)
+        // Export to Excel (Using SheetJS)
         exportExcelBtn.addEventListener('click', () => {
-            alert('Fungsi Export ke Excel belum diimplementasikan.');
-            // Implementasi nyata akan membutuhkan library seperti SheetJS (js-xlsx)
-            // Contoh sederhana: convert table HTML ke CSV
-            // const table = document.getElementById('report-table-body');
-            // let csv = 'Tanggal,Keterangan,Nama/Kategori,Tipe,Debet,Kredit\n';
-            // table.querySelectorAll('tr').forEach(row => {
-            //     const rowData = [];
-            //     row.querySelectorAll('td').forEach(cell => rowData.push(cell.textContent));
-            //     csv += rowData.join(',') + '\n';
-            // });
-            // const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            // const link = document.createElement('a');
-            // link.href = URL.createObjectURL(blob);
-            // link.download = 'Laporan_Transaksi.csv';
-            // link.click();
+            try {
+                // Prepare workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Create worksheet for transactions
+                const ws1_data = [['Tanggal', 'Keterangan', 'Nama/Kategori', 'Tipe', 'Debet', 'Kredit']];
+                const tableRows = document.querySelectorAll('#report-table-body tr');
+                
+                tableRows.forEach(row => {
+                    const rowData = [];
+                    const cells = row.querySelectorAll('td');
+                    cells.forEach(cell => {
+                        rowData.push(cell.textContent);
+                    });
+                    ws1_data.push(rowData);
+                });
+                
+                const ws1 = XLSX.utils.aoa_to_sheet(ws1_data);
+                XLSX.utils.book_append_sheet(wb, ws1, "Transaksi");
+                
+                // Create worksheet for balances
+                const ws2_data = [['Nama/Kategori', 'Tipe', 'Saldo Akhir']];
+                const balanceRows = document.querySelectorAll('#master-data-balance-report-body tr');
+                
+                balanceRows.forEach(row => {
+                    const rowData = [];
+                    const cells = row.querySelectorAll('td');
+                    cells.forEach(cell => {
+                        rowData.push(cell.textContent);
+                    });
+                    ws2_data.push(rowData);
+                });
+                
+                const ws2 = XLSX.utils.aoa_to_sheet(ws2_data);
+                XLSX.utils.book_append_sheet(wb, ws2, "Saldo");
+                
+                // Generate file and download
+                const startDate = reportStartDateInput.value;
+                const endDate = reportEndDateInput.value;
+                XLSX.writeFile(wb, `Laporan_Transaksi_${startDate}_${endDate}.xlsx`);
+                
+                alert('Laporan berhasil di-export ke Excel!');
+            } catch (error) {
+                console.error('Error exporting to Excel:', error);
+                alert('Gagal mengekspor ke Excel: ' + error.message);
+            }
         });
 
-        // Share via WhatsApp (Placeholder)
+        // Share via WhatsApp
         shareWhatsappBtn.addEventListener('click', () => {
             const totalDebet = totalDebetReport.textContent;
             const totalKredit = totalKreditReport.textContent;
@@ -1933,6 +2029,7 @@
         generateBankReportBtn.addEventListener('click', generateBankReport);
         downloadBankPdfBtn.addEventListener('click', downloadBankPdfReport);
         bankReportAccountSelect.addEventListener('change', generateBankReport);
+        shareBankWhatsappBtn.addEventListener('click', shareBankReportWhatsApp);
 
         function loadBankReportDropdown() {
             bankReportAccountSelect.innerHTML = '<option value="all">Semua Akun Bank</option>';
@@ -2046,6 +2143,30 @@
             alert('Fungsi Unduh PDF Laporan Bank belum diimplementasikan.');
             // This would follow a similar pattern to downloadPdfReport for transactions,
             // but targeting the bank outstanding report table.
+        }
+        
+        function shareBankReportWhatsApp() {
+            const startDate = bankReportStartDateInput.value;
+            const endDate = bankReportEndDateInput.value;
+            const selectedAccount = bankReportAccountSelect.value;
+            const selectedAccountName = selectedAccount === 'all' ? 'Semua Akun' : 
+                                      bankReportAccountSelect.options[bankReportAccountSelect.selectedIndex].text;
+            
+            const totalDebet = totalBankDebetPeriod.textContent;
+            const totalKredit = totalBankKreditPeriod.textContent;
+            const netMutation = netBankMutationPeriod.textContent;
+            const totalBalance = totalCurrentBankBalance.textContent;
+            
+            let message = `Laporan Mutasi Kas/Bank\n`;
+            message += `Periode: ${startDate} s/d ${endDate}\n`;
+            message += `Akun: ${selectedAccountName}\n\n`;
+            message += `Total Pemasukan: ${totalDebet}\n`;
+            message += `Total Pengeluaran: ${totalKredit}\n`;
+            message += `Net Mutasi: ${netMutation}\n`;
+            message += `Total Saldo: ${totalBalance}\n`;
+            
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
         }
 
 
