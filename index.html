@@ -373,10 +373,18 @@
         }
 
         /* Table Styling */
+        .table-container { /* New container for horizontal scrolling */
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            -ms-overflow-style: -ms-autohiding-scrollbar;
+            margin-top: 20px; /* Adjust as needed */
+        }
+
         table {
-            width: 100%;
+            width: 100%; /* Ensure table takes full width of its container */
+            min-width: 700px; /* Set a minimum width for tables to force scroll on small screens */
             border-collapse: collapse;
-            margin-top: 20px;
+            /* margin-top: 20px; REMOVED because now inside .table-container */
             overflow: hidden; /* For rounded corners */
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* subtle shadow */
         }
@@ -405,7 +413,8 @@
         .table-action-buttons {
             display: flex;
             gap: 5px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap; /* Prevent buttons from wrapping inside table cell */
+            white-space: nowrap; /* Keep buttons in one line */
         }
         .table-action-buttons .btn {
             padding: 6px 10px;
@@ -508,11 +517,17 @@
             align-items: center;
             font-weight: 500;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            flex-wrap: wrap; /* Allow wrapping on list items for bank actions */
         }
         #bank-accounts-list li .balance {
             font-size: 1.2em;
             color: var(--primary-color);
             font-weight: 700;
+        }
+        #bank-accounts-list li .bank-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px; /* Add some space if it wraps */
         }
         #bank-accounts-list li .bank-actions .btn {
             padding: 8px 12px;
@@ -586,7 +601,7 @@
                 padding: 8px; /* Reduced padding */
                 font-size: 0.9em; /* Smaller font */
             }
-            /* You might choose to hide some columns or make them scrollable */
+            /* The .table-container will handle scrolling, so no need for specific column hiding here unless desired */
         }
         
         /* Mobile menu toggle button */
@@ -688,20 +703,20 @@
                 </div>
 
                 <h3>Transaksi Terbaru</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Keterangan</th>
-                            <th>Nama/Kategori</th>
-                            <th>Tipe Transaksi</th>
-                            <th>Jumlah</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recent-transactions-table-body">
+                <div class="table-container"> <table>
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Keterangan</th>
+                                <th>Nama/Kategori</th>
+                                <th>Tipe Transaksi</th>
+                                <th>Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-transactions-table-body">
                         </tbody>
-                </table>
-            </div>
+                    </table>
+                </div> </div>
 
             <div id="transaction-tab" class="tab-pane active">
                 <h2><i class="fas fa-exchange-alt"></i> Catat Transaksi Baru</h2>
@@ -785,19 +800,19 @@
                 <button id="add-master-data-btn" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Master Data</button>
 
                 <h3>Daftar Master Data</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nama/Kategori</th>
-                            <th>Tipe</th>
-                            <th>Saldo</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="master-data-table-body">
+                <div class="table-container"> <table>
+                        <thead>
+                            <tr>
+                                <th>Nama/Kategori</th>
+                                <th>Tipe</th>
+                                <th>Saldo</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="master-data-table-body">
                         </tbody>
-                </table>
-            </div>
+                    </table>
+                </div> </div>
 
             <div id="report-tab" class="tab-pane">
                 <h2><i class="fas fa-file-alt"></i> Laporan Transaksi</h2>
@@ -856,18 +871,18 @@
                 </div>
 
                 <h3 style="margin-top: 40px;"><i class="fas fa-balance-scale"></i> Laporan Saldo per Customer/Supplier</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nama/Kategori</th>
-                            <th>Tipe</th>
-                            <th>Saldo Akhir</th>
-                        </tr>
-                    </thead>
-                    <tbody id="master-data-balance-report-body">
-                        </tbody>
-                </table>
-            </div>
+                <div class="table-container"> <table>
+                        <thead>
+                            <tr>
+                                <th>Nama/Kategori</th>
+                                <th>Tipe</th>
+                                <th>Saldo Akhir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="master-data-balance-report-body">
+                            </tbody>
+                    </table>
+                </div> </div>
 
             <div id="bank-accounts-tab" class="tab-pane">
                 <h2><i class="fas fa-university"></i> Manajemen Saldo Bank</h2>
@@ -910,22 +925,21 @@
                         <button id="share-bank-whatsapp-btn" class="btn btn-info"><i class="fab fa-whatsapp"></i> Share WhatsApp</button>
                      </div>
                 </div>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Keterangan</th>
-                            <th>Akun Kas/Bank</th>
-                            <th>Debet (Masuk)</th>
-                            <th>Kredit (Keluar)</th>
-                            <th>Saldo Akun</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bank-outstanding-report-body">
-                        </tbody>
-                </table>
-                <div class="report-summary-box">
+                <div class="table-container"> <table>
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Keterangan</th>
+                                <th>Akun Kas/Bank</th>
+                                <th>Debet (Masuk)</th>
+                                <th>Kredit (Keluar)</th>
+                                <th>Saldo Akun</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bank-outstanding-report-body">
+                            </tbody>
+                    </table>
+                </div> <div class="report-summary-box">
                     <p>Total Pemasukan Kas/Bank (Periode): <span class="value" id="total-bank-debet-period">Rp 0</span></p>
                     <p>Total Pengeluaran Kas/Bank (Periode): <span class="value" id="total-bank-kredit-period">Rp 0</span></p>
                     <p>Net Mutasi Kas/Bank (Periode): <span class="value" id="net-bank-mutation-period">Rp 0</span></p>
@@ -2003,7 +2017,7 @@
                     // loadBankAccounts() will refresh via 'on' listener
                 }).catch(error => {
                     console.error("Error updating bank account:", error);
-                    alert('Gagal memperbarui rekening bank: ' + error.message);
+                    alert('Gagal membarui rekening bank: ' + error.message);
                 });
             }).catch(error => {
                 console.error("Error fetching bank account for edit:", error);
@@ -2100,10 +2114,13 @@
                             const bankAccountName = allBankAccountsData[transaction.bankAccountId]?.name || 'Akun Tidak Ditemukan';
 
                             // Update running balance for the specific account
+                            // NOTE: The original code's logic for `transaction.type` is not robust for cash transactions (Tunai/Transfer/Cek/Giro).
+                            // It should ideally check `transaction.mainType` or `debetAmount`/`kreditAmount` directly for bank balance updates.
+                            // Assuming 'debet' means cash-in to bank and 'kredit' means cash-out from bank.
                             if (transaction.bankAccountId) {
-                                if (transaction.type === 'debet') { // Cash In
+                                if (debetAmount > 0) { // If it's a cash in transaction (debet to bank)
                                     accountRunningBalances[transaction.bankAccountId] += debetAmount;
-                                } else if (transaction.type === 'kredit') { // Cash Out
+                                } else if (kreditAmount > 0) { // If it's a cash out transaction (kredit from bank)
                                     accountRunningBalances[transaction.bankAccountId] -= kreditAmount;
                                 }
                             }
@@ -2140,9 +2157,80 @@
         }
 
         function downloadBankPdfReport() {
-            alert('Fungsi Unduh PDF Laporan Bank belum diimplementasikan.');
             // This would follow a similar pattern to downloadPdfReport for transactions,
             // but targeting the bank outstanding report table.
+            if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
+                const jspdfScript = document.createElement('script');
+                jspdfScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                document.head.appendChild(jspdfScript);
+
+                const html2canvasScript = document.createElement('script');
+                html2canvasScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                document.head.appendChild(html2canvasScript);
+
+                jspdfScript.onload = () => {
+                    html2canvasScript.onload = () => {
+                        setTimeout(() => generateBankPdf(), 100);
+                    };
+                };
+            } else {
+                generateBankPdf();
+            }
+
+            function generateBankPdf() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'pt', 'a4');
+
+                const bankReportTable = document.querySelector('#bank-accounts-tab table');
+
+                const addTableToPdf = (tableElement, title, startYPos) => {
+                    return html2canvas(tableElement, { scale: 2 }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/png');
+                        const imgWidth = doc.internal.pageSize.getWidth() - 40;
+                        const imgHeight = canvas.height * imgWidth / canvas.width;
+                        let position = startYPos;
+
+                        if (title) {
+                            doc.setFontSize(14);
+                            doc.text(title, 20, position);
+                            position += 15;
+                        }
+
+                        doc.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
+                        return imgHeight + 20;
+                    });
+                };
+
+                doc.setFontSize(18);
+                doc.text("Laporan Mutasi Kas/Bank", 20, 30);
+                doc.setFontSize(10);
+                doc.text(`Periode: ${bankReportStartDateInput.value} s/d ${bankReportEndDateInput.value}`, 20, 45);
+                doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID')}`, 20, 55);
+                doc.text(`Akun Bank: ${bankReportAccountSelect.options[bankReportAccountSelect.selectedIndex].text}`, 20, 70);
+
+                let currentY = 100;
+
+                addTableToPdf(bankReportTable, "Detail Mutasi", currentY).then(heightOfTable => {
+                    currentY += heightOfTable;
+
+                    if (currentY + 100 > doc.internal.pageSize.getHeight()) {
+                        doc.addPage();
+                        currentY = 30;
+                    }
+
+                    doc.setFontSize(10);
+                    doc.text(`Total Pemasukan Kas/Bank (Periode): ${totalBankDebetPeriod.textContent}`, 20, currentY);
+                    doc.text(`Total Pengeluaran Kas/Bank (Periode): ${totalBankKreditPeriod.textContent}`, 20, currentY + 15);
+                    doc.text(`Net Mutasi Kas/Bank (Periode): ${netBankMutationPeriod.textContent}`, 20, currentY + 30);
+                    doc.text(`Total Saldo Semua Akun Bank Saat Ini: ${totalCurrentBankBalance.textContent}`, 20, currentY + 45);
+
+                    doc.save(`Laporan_Mutasi_Bank_Roda_Toko_${bankReportStartDateInput.value}_${bankReportEndDateInput.value}.pdf`);
+                    alert('Laporan PDF Bank berhasil dibuat dan diunduh!');
+                }).catch(error => {
+                    console.error("Error generating Bank PDF:", error);
+                    alert("Gagal membuat laporan PDF Bank. Pastikan tabel terlihat di layar atau coba lagi.");
+                });
+            }
         }
         
         function shareBankReportWhatsApp() {
