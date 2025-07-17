@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="app-title">Toko Maju Jaya - Aplikasi Transaksi</title>
     
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#2196F3">
     <link rel="apple-touch-icon" href="/logo192.png"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link rel="icon" type="image/png" href="favicon32.png">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -393,7 +392,6 @@
             min-width: 700px; /* Set a minimum width for tables to force scroll on small screens */
             border-collapse: collapse;
             /* margin-top: 20px; REMOVED because now inside .table-container */
-            overflow: hidden; /* For rounded corners */
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* subtle shadow */
         }
 
@@ -790,6 +788,10 @@
                     <label for="payment-method-details-input" id="payment-method-details-label">Nomor Cek/Giro/Bank Tujuan</label>
                     <input type="text" id="payment-method-details-input" placeholder="Masukkan detail pembayaran">
                 </div>
+                <div class="form-group" id="transaction-due-date-group" style="display: none;">
+                    <label for="transaction-days-due">Jumlah Hari Jatuh Tempo</label>
+                    <input type="number" id="transaction-days-due" placeholder="Contoh: 30 (hari)">
+                </div>
 
                 <div class="form-group">
                     <label for="transaction-amount">Jumlah Transaksi (Rp)</label>
@@ -868,6 +870,15 @@
                         <label for="filter-by-name-input">Filter Berdasarkan Nama:</label>
                         <input type="text" id="filter-by-name-input" placeholder="Cari nama...">
                     </div>
+                    <div class="form-group">
+                        <label for="report-due-date-filter">Laporan Jatuh Tempo:</label>
+                        <select id="report-due-date-filter">
+                            <option value="none">Tidak Difilter</option>
+                            <option value="piutang-jatuh-tempo">Piutang Jatuh Tempo</option>
+                            <option value="hutang-jatuh-tempo">Hutang Jatuh Tempo</option>
+                            <option value="all-jatuh-tempo">Semua Jatuh Tempo</option>
+                        </select>
+                    </div>
                     <div class="btn-group">
                         <button id="generate-report-btn" class="btn btn-primary"><i class="fas fa-search"></i> Buat Laporan</button>
                         <button id="download-pdf-btn" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Unduh PDF</button>
@@ -885,7 +896,7 @@
                                 <th>Keterangan</th>
                                 <th>Nama/Kategori</th>
                                 <th>Tipe</th>
-                                <th>Debet</th>
+                                <th>Metode Bayar</th> <th>Jatuh Tempo</th> <th>Debet</th>
                                 <th>Kredit</th>
                             </tr>
                         </thead>
@@ -1076,6 +1087,10 @@
         const paymentMethodDetailsGroup = document.getElementById('payment-method-details-group'); // Group for method details
         const paymentMethodDetailsLabel = document.getElementById('payment-method-details-label');
         const paymentMethodDetailsInput = document.getElementById('payment-method-details-input');
+        // NEW: Due Date input elements
+        const transactionDueDateGroup = document.getElementById('transaction-due-date-group');
+        const transactionDaysDueInput = document.getElementById('transaction-days-due');
+
         const transactionAmountInput = document.getElementById('transaction-amount');
         const transactionDescriptionInput = document.getElementById('transaction-description');
         const transactionPredictedBalanceInput = document.getElementById('transaction-predicted-balance'); // Now for party balance
@@ -1093,6 +1108,9 @@
         const reportEndDateInput = document.getElementById('report-end-date');
         const filterMasterDataType = document.getElementById('filter-master-data-type');
         const filterByNameInput = document.getElementById('filter-by-name-input');
+        // NEW: Report Due Date Filter
+        const reportDueDateFilter = document.getElementById('report-due-date-filter');
+
         const generateReportBtn = document.getElementById('generate-report-btn');
         const downloadPdfBtn = document.getElementById('download-pdf-btn');
         const exportExcelBtn = document.getElementById('export-excel-btn');
@@ -1149,10 +1167,17 @@
             return parseFloat(rupiahString.replace(/[^0-9,-]+/g, "").replace(/\./g, '').replace(',', '.'));
         }
 
+        // Function to add days to a date and return in YYYY-MM-DD format
+        function addDays(date, days) {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result.toISOString().split('T')[0];
+        }
+
         // --- Date Display ---
         function updateCurrentDate() {
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            currentDatePicker.textContent = new Date().toLocaleDateString('id-ID', options);
+            currentDatePicker.textContent = new Date().toLocaleDateString('id-ID');
             // Set default date for transaction form to today
             const today = new Date();
             transactionDateInput.value = today.toISOString().split('T')[0];
@@ -1204,8 +1229,6 @@
                 } else if (activeTabId === 'bank-accounts-tab') {
                     loadBankAccounts();
                     loadBankReportDropdown(); // Populate bank account dropdown for report
-                    loadBankReportDropdown(); // Populate bank account dropdown for report
-                    generateBankReport(); // Generate bank report by default
                 } else if (activeTabId === 'settings-tab') {
                     loadSettings();
                 }
@@ -1324,7 +1347,10 @@
             // Hide all first
             transactionBankAccountGroup.style.display = 'none';
             paymentMethodDetailsGroup.style.display = 'none';
+            transactionDueDateGroup.style.display = 'none'; // Hide due date input by default
+
             paymentMethodDetailsInput.value = ''; // Clear input
+            transactionDaysDueInput.value = ''; // Clear due date input
 
             if (method === 'Tunai' || method === 'Transfer') {
                 transactionBankAccountGroup.style.display = 'block';
@@ -1336,6 +1362,11 @@
                 paymentMethodDetailsLabel.textContent = method === 'Cek' ? 'Nomor Cek' : 'Nomor Giro';
                 paymentMethodDetailsInput.placeholder = `Masukkan ${method} number`;
             }
+            // Show due date input for Piutang and Hutang
+            if (method === 'Piutang' || method === 'Hutang') {
+                transactionDueDateGroup.style.display = 'block';
+            }
+
             calculatePredictedBalance(); // Recalculate balance display
         });
 
@@ -1381,6 +1412,15 @@
             const paymentMethodDetails = paymentMethodDetailsInput.value.trim();
             const amount = parseFloat(transactionAmountInput.value) || 0;
             const description = transactionDescriptionInput.value.trim();
+            const daysDue = parseInt(transactionDaysDueInput.value); // NEW: Get days due
+
+            let dueDate = null;
+            if ((paymentMethod === 'Piutang' || paymentMethod === 'Hutang') && !isNaN(daysDue) && daysDue >= 0) {
+                dueDate = addDays(date, daysDue);
+            } else if ((paymentMethod === 'Piutang' || paymentMethod === 'Hutang') && (isNaN(daysDue) || daysDue < 0)) {
+                 alert('Mohon masukkan jumlah hari jatuh tempo yang valid untuk Piutang/Hutang.');
+                 return;
+            }
 
             if (!date || !mainType || !masterDataId || !paymentMethod || amount <= 0 || !description) {
                 alert('Mohon lengkapi semua field wajib di formulir transaksi.');
@@ -1438,6 +1478,8 @@
                 masterDataId: masterDataId,
                 masterDataName: masterDataItem.name,
                 masterDataType: masterDataItem.type,
+                dueDate: dueDate, // NEW: Add dueDate to transaction data
+                daysDue: (paymentMethod === 'Piutang' || paymentMethod === 'Hutang') ? daysDue : null, // NEW: Store daysDue
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
@@ -1510,7 +1552,9 @@
             transactionBankAccountSelect.value = ''; // Clear bank account selection
             transactionBankAccountGroup.style.display = 'none'; // Hide bank account field
             paymentMethodDetailsGroup.style.display = 'none'; // Hide payment details field
+            transactionDueDateGroup.style.display = 'none'; // Hide due date group
             paymentMethodDetailsInput.value = ''; // Clear payment details input
+            transactionDaysDueInput.value = ''; // Clear days due input
             transactionAmountInput.value = '';
             transactionDescriptionInput.value = '';
             transactionPredictedBalanceInput.value = formatRupiah(0);
@@ -1681,6 +1725,7 @@
         downloadPdfBtn.addEventListener('click', downloadPdfReport);
         filterMasterDataType.addEventListener('change', generateReport); // Filter report by master data type
         filterByNameInput.addEventListener('input', generateReport); // Filter report by name input
+        reportDueDateFilter.addEventListener('change', generateReport); // NEW: Due Date filter
 
         // Export to Excel (Using SheetJS)
         exportExcelBtn.addEventListener('click', () => {
@@ -1689,7 +1734,8 @@
                 const wb = XLSX.utils.book_new();
                 
                 // Create worksheet for transactions
-                const ws1_data = [['Tanggal', 'Keterangan', 'Nama/Kategori', 'Tipe', 'Debet', 'Kredit']];
+                // NEW: Added 'Metode Bayar' and 'Jatuh Tempo' columns for Excel export
+                const ws1_data = [['Tanggal', 'Keterangan', 'Nama/Kategori', 'Tipe', 'Metode Bayar', 'Jatuh Tempo', 'Debet', 'Kredit']];
                 const tableRows = document.querySelectorAll('#report-table-body tr');
                 
                 tableRows.forEach(row => {
@@ -1723,7 +1769,7 @@
                 // Generate file and download
                 const startDate = reportStartDateInput.value;
                 const endDate = reportEndDateInput.value;
-                XLSX.writeFile(wb, `Laporan_Transaksi_${startDate}_${endDate}.xlsx`);
+                XLSX.writeFile(wb, `Laporan_Transaksi_Toko_Maju_Jaya_${startDate}_${endDate}.xlsx`);
                 
                 alert('Laporan berhasil di-export ke Excel!');
             } catch (error) {
@@ -1741,13 +1787,17 @@
             const endDate = reportEndDateInput.value;
             const filterType = filterMasterDataType.value;
             const filterName = filterByNameInput.value;
+            const dueDateFilterValue = reportDueDateFilter.value; // NEW: Get due date filter value
 
-            let message = `Laporan Transaksi\nPeriode: ${startDate} s/d ${endDate}\n`;
+            let message = `Laporan Transaksi Toko Maju Jaya\nPeriode: ${startDate} s/d ${endDate}\n`;
             if (filterType !== 'all') {
                 message += `Filter Tipe: ${filterType}\n`;
             }
             if (filterName) {
                 message += `Filter Nama: ${filterName}\n`;
+            }
+            if (dueDateFilterValue !== 'none') { // NEW: Add due date filter info to WhatsApp message
+                message += `Filter Jatuh Tempo: ${reportDueDateFilter.options[reportDueDateFilter.selectedIndex].text}\n`;
             }
             message += `\nTotal Debet: ${totalDebet}\n`;
             message += `Total Kredit: ${totalKredit}\n`;
@@ -1763,6 +1813,7 @@
             const endDate = reportEndDateInput.value;
             const selectedMasterDataType = filterMasterDataType.value; // Get selected filter type
             const filterByName = filterByNameInput.value.toLowerCase(); // Get filter name
+            const dueDateFilterValue = reportDueDateFilter.value; // NEW: Get due date filter value
 
             if (!startDate || !endDate) {
                 alert('Mohon pilih rentang tanggal untuk laporan.');
@@ -1781,6 +1832,8 @@
                     reportTableBody.innerHTML = '';
                     let totalDebet = 0;
                     let totalKredit = 0;
+                    const todayDate = new Date();
+                    const todayDateString = todayDate.toISOString().split('T')[0];
 
                     const transactions = [];
                     snapshot.forEach(childSnapshot => {
@@ -1791,26 +1844,47 @@
                     const filteredTransactions = transactions.filter(transaction => {
                         const matchesType = selectedMasterDataType === 'all' || transaction.masterDataType === selectedMasterDataType;
                         const matchesName = filterByName === '' || (transaction.masterDataName && transaction.masterDataName.toLowerCase().includes(filterByName));
-                        return matchesType && matchesName;
+                        
+                        // NEW: Due Date Filter Logic
+                        let matchesDueDate = true;
+                        if (dueDateFilterValue !== 'none' && transaction.dueDate) {
+                            const transactionDueDate = transaction.dueDate; // YYYY-MM-DD format from DB
+                            if (dueDateFilterValue === 'piutang-jatuh-tempo') {
+                                matchesDueDate = transaction.paymentMethod === 'Piutang' && transactionDueDate <= todayDateString;
+                            } else if (dueDateFilterValue === 'hutang-jatuh-tempo') {
+                                matchesDueDate = transaction.paymentMethod === 'Hutang' && transactionDueDate <= todayDateString;
+                            } else if (dueDateFilterValue === 'all-jatuh-tempo') {
+                                matchesDueDate = (transaction.paymentMethod === 'Piutang' || transaction.paymentMethod === 'Hutang') && transactionDueDate <= todayDateString;
+                            }
+                        } else if (dueDateFilterValue !== 'none' && !transaction.dueDate) {
+                            // If filter is active but transaction has no due date, it shouldn't match.
+                            matchesDueDate = false;
+                        }
+
+                        return matchesType && matchesName && matchesDueDate;
                     });
 
                     // Sort transactions by timestamp (ascending) for consistent display
                     filteredTransactions.sort((a, b) => a.timestamp - b.timestamp);
 
                     if (filteredTransactions.length === 0) {
-                        reportTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada transaksi dalam periode ini atau filter yang dipilih.</td></tr>';
+                        reportTableBody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada transaksi dalam periode ini atau filter yang dipilih.</td></tr>';
                     } else {
                         filteredTransactions.forEach(transaction => {
                             const row = reportTableBody.insertRow();
                             const date = new Date(transaction.timestamp).toLocaleDateString('id-ID');
+                            const dueDateDisplay = transaction.dueDate ? new Date(transaction.dueDate).toLocaleDateString('id-ID') : '-'; // NEW: Due Date display
+                            
                             row.insertCell(0).textContent = date;
                             row.insertCell(1).textContent = transaction.description;
                             row.insertCell(2).textContent = transaction.masterDataName;
-                            // Display type more user-friendly
                             row.insertCell(3).textContent = transaction.mainType; // Display main transaction type
+                            row.insertCell(4).textContent = transaction.paymentMethod; // NEW: Payment Method column
+                            row.insertCell(5).textContent = dueDateDisplay; // NEW: Due Date column
+
                             // Ensure debet/kredit values are numbers before formatting
-                            row.insertCell(4).textContent = formatRupiah(parseFloat(transaction.debet) || 0); 
-                            row.insertCell(5).textContent = formatRupiah(parseFloat(transaction.kredit) || 0);
+                            row.insertCell(6).textContent = formatRupiah(parseFloat(transaction.debet) || 0); 
+                            row.insertCell(7).textContent = formatRupiah(parseFloat(transaction.kredit) || 0);
                             
                             totalDebet += (parseFloat(transaction.debet) || 0); 
                             totalKredit += (parseFloat(transaction.kredit) || 0);
@@ -1922,9 +1996,13 @@
                 if (filterByNameInput.value !== '') {
                     doc.text(`Filter Nama: ${filterByNameInput.value}`, 20, 85);
                 }
+                // NEW: Add due date filter info to PDF
+                if (reportDueDateFilter.value !== 'none') { 
+                    doc.text(`Filter Jatuh Tempo: ${reportDueDateFilter.options[reportDueDateFilter.selectedIndex].text}`, 20, 100);
+                }
 
 
-                let currentY = 100; // Starting Y position after header info and filter
+                let currentY = 120; // Adjusted starting Y position for new filter line
 
                 addTableToPdf(reportTable, "Detail Transaksi", currentY).then(heightOfFirstTable => {
                     currentY += heightOfFirstTable; // Update Y for next element
@@ -2280,7 +2358,7 @@
             const netMutation = netBankMutationPeriod.textContent;
             const totalBalance = totalCurrentBankBalance.textContent;
             
-            let message = `Laporan Mutasi Kas/Bank\n`;
+            let message = `Laporan Mutasi Kas/Bank Toko Maju Jaya\n`;
             message += `Periode: ${startDate} s/d ${endDate}\n`;
             message += `Akun: ${selectedAccountName}\n\n`;
             message += `Total Pemasukan: ${totalDebet}\n`;
