@@ -139,19 +139,19 @@
             flex-grow: 1; /* Allow tabs to take available space */
             border-bottom: 3px solid transparent; /* Consistent border for active tab effect */
         }
-
+        
+        /* Scrollbar styles for webkit browsers */
         .nav-tabs::-webkit-scrollbar {
             height: 5px; /* Make scrollbar thinner */
         }
-
         .nav-tabs::-webkit-scrollbar-thumb {
             background: var(--primary-color);
             border-radius: 10px;
         }
-
         .nav-tabs::-webkit-scrollbar-track {
             background: var(--light-bg);
         }
+
 
         .nav-tabs li {
             padding: 15px 20px;
@@ -347,6 +347,8 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            overflow: hidden; /* For rounded corners */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* subtle shadow */
         }
 
         table th, table td {
@@ -355,7 +357,7 @@
             text-align: left;
         }
 
-        table th {
+        table thead th {
             background-color: var(--secondary-color);
             color: white;
             font-weight: 600;
@@ -405,10 +407,10 @@
             margin-bottom: 15px;
             color: var(--primary-color);
         }
-        .summary-card.supplier-card i { color: var(--info-color); }
         .summary-card.customer-card i { color: var(--primary-color); }
-        .summary-card.debt-card i { color: var(--danger-color); }
+        .summary-card.supplier-card i { color: var(--info-color); }
         .summary-card.receivable-card i { color: var(--success-color); }
+        .summary-card.debt-card i { color: var(--danger-color); }
 
         .card-title {
             font-size: 1.1rem;
@@ -420,7 +422,7 @@
             font-weight: 700;
         }
 
-        /* Report Filters */
+        /* Report Filters & Summary */
         .report-filters-group {
             display: flex;
             flex-wrap: wrap;
@@ -450,6 +452,15 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 10px;
         }
+        .report-summary-box p {
+            margin: 5px 0;
+        }
+        .report-summary-box .value {
+            color: var(--primary-color);
+        }
+        .report-summary-box .value.positive { color: var(--success-color); }
+        .report-summary-box .value.negative { color: var(--danger-color); }
+
 
         /* Saldo Bank List */
         #bank-accounts-list {
@@ -483,11 +494,11 @@
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
-                align-items: flex-start;
+                align-items: center; /* Center items for better mobile display */
             }
             .logo-section {
                 width: 100%;
-                justify-content: center;
+                justify-content: center; /* Center logo */
             }
             .store-info {
                 text-align: center;
@@ -509,6 +520,7 @@
                 justify-content: flex-start;
                 padding: 0 15px; /* Add horizontal padding to make scrollbar visible */
                 margin-bottom: 10px; /* Space between tabs and logout btn */
+                /* Ensure overflow-x is the only horizontal control */
             }
             .nav-tabs li {
                 font-size: 13px;
@@ -526,6 +538,9 @@
             }
             .report-filters-group .form-group {
                 flex-basis: 100%; /* Stack filters */
+            }
+            .summary-cards {
+                grid-template-columns: 1fr; /* Stack cards on very small screens */
             }
         }
     </style>
@@ -598,7 +613,7 @@
                             <th>Tanggal</th>
                             <th>Keterangan</th>
                             <th>Nama/Kategori</th>
-                            <th>Tipe</th>
+                            <th>Tipe Transaksi</th>
                             <th>Jumlah</th>
                         </tr>
                     </thead>
@@ -610,6 +625,10 @@
             <div id="transaction-tab" class="tab-pane active">
                 <h2><i class="fas fa-exchange-alt"></i> Catat Transaksi Baru</h2>
                 <div class="form-group">
+                    <label for="transaction-date">Tanggal Transaksi</label>
+                    <input type="date" id="transaction-date">
+                </div>
+                <div class="form-group">
                     <label for="transaction-amount">Jumlah Transaksi (Rp)</label>
                     <input type="number" id="transaction-amount" placeholder="Contoh: 500000" step="any" inputmode="decimal">
                 </div>
@@ -618,17 +637,9 @@
                     <textarea id="transaction-description" placeholder="Pembelian barang, Pembayaran gaji, dll."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="transaction-type">Tipe Transaksi</label>
-                    <select id="transaction-type">
-                        <option value="">Pilih Tipe</option>
-                        <option value="debet">Debet (Pemasukan)</option>
-                        <option value="kredit">Kredit (Pengeluaran)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="transaction-master-data">Nama/Kategori</label>
+                    <label for="transaction-master-data">Jenis Pihak / Kategori</label>
                     <select id="transaction-master-data">
-                        <option value="">Pilih Nama/Kategori</option>
+                        <option value="">Pilih Jenis Pihak / Kategori</option>
                         </select>
                 </div>
                 <div class="form-group">
@@ -695,6 +706,8 @@
                     <div class="btn-group">
                         <button id="generate-report-btn" class="btn btn-primary"><i class="fas fa-search"></i> Buat Laporan</button>
                         <button id="download-pdf-btn" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Unduh PDF</button>
+                        <button id="export-excel-btn" class="btn btn-success"><i class="fas fa-file-excel"></i> Export Excel</button>
+                        <button id="share-whatsapp-btn" class="btn btn-success"><i class="fab fa-whatsapp"></i> Share WhatsApp</button>
                     </div>
                 </div>
 
@@ -717,10 +730,23 @@
                 </div>
 
                 <div class="report-summary-box">
-                    <p>Total Debet: <span id="total-debet-report">Rp 0</span></p>
-                    <p>Total Kredit: <span id="total-kredit-report">Rp 0</span></p>
-                    <p>Saldo Akhir: <span id="final-balance-report">Rp 0</span></p>
+                    <p>Total Debet: <span class="value" id="total-debet-report">Rp 0</span></p>
+                    <p>Total Kredit: <span class="value" id="total-kredit-report">Rp 0</span></p>
+                    <p>Saldo Akhir: <span class="value" id="final-balance-report">Rp 0</span></p>
                 </div>
+
+                <h3 style="margin-top: 40px;"><i class="fas fa-balance-scale"></i> Laporan Saldo per Customer/Supplier</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama/Kategori</th>
+                            <th>Tipe</th>
+                            <th>Saldo Akhir</th>
+                        </tr>
+                    </thead>
+                    <tbody id="master-data-balance-report-body">
+                        </tbody>
+                </table>
             </div>
 
             <div id="bank-accounts-tab" class="tab-pane">
@@ -825,10 +851,10 @@
         const currentDatePicker = document.getElementById('current-date');
 
         // Transaction Tab Elements
+        const transactionDateInput = document.getElementById('transaction-date'); // New: Tanggal input
         const transactionAmountInput = document.getElementById('transaction-amount');
         const transactionDescriptionInput = document.getElementById('transaction-description');
-        const transactionTypeSelect = document.getElementById('transaction-type');
-        const transactionMasterDataSelect = document.getElementById('transaction-master-data');
+        const transactionMasterDataSelect = document.getElementById('transaction-master-data'); // Now selects type of party
         const transactionDebetInput = document.getElementById('transaction-debet');
         const transactionKreditInput = document.getElementById('transaction-kredit');
         const transactionBalanceInput = document.getElementById('transaction-balance');
@@ -846,10 +872,13 @@
         const reportEndDateInput = document.getElementById('report-end-date');
         const generateReportBtn = document.getElementById('generate-report-btn');
         const downloadPdfBtn = document.getElementById('download-pdf-btn');
+        const exportExcelBtn = document.getElementById('export-excel-btn'); // New: Excel button
+        const shareWhatsappBtn = document.getElementById('share-whatsapp-btn'); // New: WhatsApp button
         const reportTableBody = document.getElementById('report-table-body');
         const totalDebetReport = document.getElementById('total-debet-report');
         const totalKreditReport = document.getElementById('total-kredit-report');
         const finalBalanceReport = document.getElementById('final-balance-report');
+        const masterDataBalanceReportBody = document.getElementById('master-data-balance-report-body'); // New: Laporan per Supplier/Customer
 
         // Bank Accounts Tab Elements
         const bankAccountNameInput = document.getElementById('bank-account-name');
@@ -880,13 +909,16 @@
         function parseRupiah(rupiahString) {
             if (typeof rupiahString !== 'string') return 0;
             // Remove "Rp", dots for thousands, and replace comma with dot for decimals (if any)
-            return parseFloat(rupiahString.replace(/[^0-9,-]+/g, '').replace(/\./g, '').replace(',', '.'));
+            return parseFloat(rupiahString.replace(/[^0-9,-]+/g, "").replace(/\./g, '').replace(',', '.'));
         }
 
         // --- Date Display ---
         function updateCurrentDate() {
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             currentDatePicker.textContent = new Date().toLocaleDateString('id-ID', options);
+            // Set default date for transaction form to today
+            const today = new Date();
+            transactionDateInput.value = today.toISOString().split('T')[0];
         }
         updateCurrentDate();
 
@@ -921,6 +953,7 @@
                     reportStartDateInput.value = firstDayOfMonth.toISOString().split('T')[0];
                     reportEndDateInput.value = today.toISOString().split('T')[0];
                     generateReport(); // Auto-generate report for current month
+                    loadMasterDataBalanceReport(); // Load balance report for master data
                 } else if (activeTabId === 'bank-accounts-tab') {
                     loadBankAccounts();
                 } else if (activeTabId === 'settings-tab') {
@@ -996,7 +1029,7 @@
         function loadMasterDataForDropdown() {
             database.ref('masterData').on('value', snapshot => {
                 masterData = snapshot.val() || {}; // Cache master data
-                transactionMasterDataSelect.innerHTML = '<option value="">Pilih Nama/Kategori</option>';
+                transactionMasterDataSelect.innerHTML = '<option value="">Pilih Jenis Pihak / Kategori</option>';
                 for (let id in masterData) {
                     const item = masterData[id];
                     const option = document.createElement('option');
@@ -1015,58 +1048,100 @@
 
         // --- Transaksi Tab Logic ---
         transactionAmountInput.addEventListener('input', calculateDebetKreditBalance); // Input type number, so no Rupiah formatting here
-        transactionTypeSelect.addEventListener('change', calculateDebetKreditBalance);
         transactionMasterDataSelect.addEventListener('change', calculateDebetKreditBalance);
 
         function calculateDebetKreditBalance() {
             const amount = parseFloat(transactionAmountInput.value) || 0;
-            const type = transactionTypeSelect.value;
             const masterDataId = transactionMasterDataSelect.value;
+            let transactionType = ''; // 'debet' or 'kredit' for transaction record
 
             transactionDebetInput.value = formatRupiah(0);
             transactionKreditInput.value = formatRupiah(0);
             transactionBalanceInput.value = formatRupiah(0);
 
-            if (amount > 0) {
-                if (type === 'debet') { // Pemasukan
-                    transactionDebetInput.value = formatRupiah(amount);
-                } else if (type === 'kredit') { // Pengeluaran
-                    transactionKreditInput.value = formatRupiah(amount);
-                }
-            }
-
             if (masterDataId && masterData[masterDataId]) {
+                const masterItemType = masterData[masterDataId].type; // 'Supplier', 'Customer', 'Lain-lain'
+                
+                // Determine debet/kredit based on master data type and amount
+                if (masterItemType === 'Customer') {
+                    // Customer: Transaction typically increases Receivable (Debet)
+                    transactionDebetInput.value = formatRupiah(amount);
+                    transactionType = 'debet'; 
+                } else if (masterItemType === 'Supplier') {
+                    // Supplier: Transaction typically increases Payable (Kredit)
+                    transactionKreditInput.value = formatRupiah(amount);
+                    transactionType = 'kredit';
+                } else {
+                    // For 'Lain-lain' or unset, let user specify (or keep as 0)
+                    // For simplicity, we'll keep it as 0 unless a specific type is implied
+                    // Or you could add an explicit 'transaction type' dropdown for Lain-lain
+                    transactionDebetInput.value = formatRupiah(0); // No default debet/kredit for 'Lain-lain'
+                    transactionKreditInput.value = formatRupiah(0);
+                    transactionType = 'lain-lain'; // Custom type for non-customer/supplier
+                }
+
+                // Calculate and display predicted balance per master data item
                 const currentBalance = masterData[masterDataId].balance || 0;
                 let newBalance = currentBalance;
 
-                if (type === 'debet') {
+                if (transactionType === 'debet') {
                     newBalance = currentBalance + amount;
-                } else if (type === 'kredit') {
+                } else if (transactionType === 'kredit') {
                     newBalance = currentBalance - amount;
                 }
-                transactionBalanceInput.value = formatRupiah(newBalance);
+                // If 'Lain-lain', balance prediction might not be straightforward
+                if (masterItemType !== 'Lain-lain') {
+                     transactionBalanceInput.value = formatRupiah(newBalance);
+                } else {
+                    transactionBalanceInput.value = formatRupiah(currentBalance); // Show current balance without prediction for 'Lain-lain'
+                }
             }
         }
 
         saveTransactionBtn.addEventListener('click', () => {
+            const date = transactionDateInput.value; // Get date
             const amount = parseFloat(transactionAmountInput.value) || 0;
             const description = transactionDescriptionInput.value.trim();
-            const type = transactionTypeSelect.value;
             const masterDataId = transactionMasterDataSelect.value;
             const masterDataItem = masterDataId ? masterData[masterDataId] : null;
 
-            if (amount <= 0 || !description || !type || !masterDataId) {
-                alert('Mohon lengkapi semua data transaksi (Jumlah, Keterangan, Tipe, Nama/Kategori).');
+            if (!date || amount <= 0 || !description || !masterDataId) {
+                alert('Mohon lengkapi semua data transaksi (Tanggal, Jumlah, Keterangan, Jenis Pihak/Kategori).');
                 return;
             }
 
+            // Determine actual transaction type (debet/kredit) based on master data type
+            let transactionTypeForDB = '';
+            let debetAmount = 0;
+            let kreditAmount = 0;
+
+            if (masterDataItem.type === 'Customer') {
+                transactionTypeForDB = 'debet';
+                debetAmount = amount;
+            } else if (masterDataItem.type === 'Supplier') {
+                transactionTypeForDB = 'kredit';
+                kreditAmount = amount;
+            } else { // 'Lain-lain'
+                // For 'Lain-lain' category, we need to decide if it's debet or kredit.
+                // For now, let's assume it's always 'kredit' (expense) if not Customer/Supplier.
+                // Or you could add a separate dropdown for 'Lain-lain' transactions.
+                transactionTypeForDB = 'kredit'; // Default to kredit for 'Lain-lain'
+                kreditAmount = amount;
+                alert('Untuk kategori "Lain-lain", transaksi dicatat sebagai Pengeluaran (Kredit) secara default. Mohon sesuaikan secara manual jika ini Pemasukan.');
+                // You might need a more robust way to handle 'Lain-lain' as debet or kredit.
+            }
+
+
             const transactionData = {
+                date: date, // Store transaction date
                 amount: amount, // Store as number
                 description: description,
-                type: type, // 'debet' or 'kredit'
+                type: transactionTypeForDB, // 'debet' or 'kredit' determined by master data type
+                debet: debetAmount,
+                kredit: kreditAmount,
                 masterDataId: masterDataId,
-                masterDataName: masterDataItem ? masterDataItem.name : 'N/A',
-                masterDataType: masterDataItem ? masterDataItem.type : 'N/A',
+                masterDataName: masterDataItem.name,
+                masterDataType: masterDataItem.type,
                 timestamp: firebase.database.ServerValue.TIMESTAMP // Firebase server timestamp
             };
 
@@ -1074,7 +1149,7 @@
                 .then(() => {
                     alert('Transaksi berhasil disimpan!');
                     // Update balance for the affected master data item
-                    updateMasterDataBalance(masterDataId, amount, type);
+                    updateMasterDataBalance(masterDataId, amount, transactionTypeForDB);
                     resetTransactionForm();
                     // Optional: Reload dashboard/reports if they are visible
                     if (document.getElementById('dashboard-tab').classList.contains('active')) {
@@ -1082,6 +1157,7 @@
                     }
                     if (document.getElementById('report-tab').classList.contains('active')) {
                         generateReport();
+                        loadMasterDataBalanceReport();
                     }
                 })
                 .catch(error => {
@@ -1117,14 +1193,16 @@
         resetFormBtn.addEventListener('click', resetTransactionForm);
 
         function resetTransactionForm() {
+            const today = new Date();
+            transactionDateInput.value = today.toISOString().split('T')[0]; // Reset date to today
             transactionAmountInput.value = '';
             transactionDescriptionInput.value = '';
-            transactionTypeSelect.value = ''; // Reset to default "Pilih Tipe"
             transactionMasterDataSelect.value = ''; // Reset to default "Pilih Nama/Kategori"
             transactionDebetInput.value = formatRupiah(0);
             transactionKreditInput.value = formatRupiah(0);
             transactionBalanceInput.value = formatRupiah(0);
         }
+
 
         // --- Dashboard Tab Logic ---
         function loadDashboardData() {
@@ -1175,6 +1253,7 @@
                     row.insertCell(0).textContent = date;
                     row.insertCell(1).textContent = transaction.description;
                     row.insertCell(2).textContent = transaction.masterDataName;
+                    // Display type more user-friendly
                     row.insertCell(3).textContent = transaction.type === 'debet' ? 'Pemasukan' : 'Pengeluaran';
                     row.insertCell(4).textContent = formatRupiah(transaction.amount);
                 });
@@ -1290,6 +1369,43 @@
         generateReportBtn.addEventListener('click', generateReport);
         downloadPdfBtn.addEventListener('click', downloadPdfReport);
 
+        // Export to Excel (Placeholder)
+        exportExcelBtn.addEventListener('click', () => {
+            alert('Fungsi Export ke Excel belum diimplementasikan.');
+            // Implementasi nyata akan membutuhkan library seperti SheetJS (js-xlsx)
+            // Contoh sederhana: convert table HTML ke CSV
+            // const table = document.getElementById('report-table-body');
+            // let csv = 'Tanggal,Keterangan,Nama/Kategori,Tipe,Debet,Kredit\n';
+            // table.querySelectorAll('tr').forEach(row => {
+            //     const rowData = [];
+            //     row.querySelectorAll('td').forEach(cell => rowData.push(cell.textContent));
+            //     csv += rowData.join(',') + '\n';
+            // });
+            // const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            // const link = document.createElement('a');
+            // link.href = URL.createObjectURL(blob);
+            // link.download = 'Laporan_Transaksi.csv';
+            // link.click();
+        });
+
+        // Share via WhatsApp (Placeholder)
+        shareWhatsappBtn.addEventListener('click', () => {
+            const totalDebet = totalDebetReport.textContent;
+            const totalKredit = totalKreditReport.textContent;
+            const finalBalance = finalBalanceReport.textContent;
+            const startDate = reportStartDateInput.value;
+            const endDate = reportEndDateInput.value;
+
+            let message = `Laporan Transaksi\nPeriode: ${startDate} s/d ${endDate}\n\n`;
+            message += `Total Debet: ${totalDebet}\n`;
+            message += `Total Kredit: ${totalKredit}\n`;
+            message += `Saldo Akhir: ${finalBalance}\n\n`;
+            message += `Lihat detail di aplikasi.`;
+
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        });
+
         function generateReport() {
             const startDate = reportStartDateInput.value;
             const endDate = reportEndDateInput.value;
@@ -1330,28 +1446,57 @@
                             row.insertCell(0).textContent = date;
                             row.insertCell(1).textContent = transaction.description;
                             row.insertCell(2).textContent = transaction.masterDataName;
-                            row.insertCell(3).textContent = transaction.masterDataType;
-
-                            if (transaction.type === 'debet') {
-                                row.insertCell(4).textContent = formatRupiah(transaction.amount);
-                                row.insertCell(5).textContent = formatRupiah(0);
-                                totalDebet += transaction.amount;
-                            } else { // type === 'kredit'
-                                row.insertCell(4).textContent = formatRupiah(0);
-                                row.insertCell(5).textContent = formatRupiah(transaction.amount);
-                                totalKredit += transaction.amount;
-                            }
+                            // Display type more user-friendly
+                            row.insertCell(3).textContent = transaction.type === 'debet' ? 'Pemasukan' : 'Pengeluaran';
+                            row.insertCell(4).textContent = formatRupiah(transaction.debet); // Use transaction.debet/kredit directly
+                            row.insertCell(5).textContent = formatRupiah(transaction.kredit);
+                            
+                            totalDebet += transaction.debet; // Sum the actual debet/kredit values
+                            totalKredit += transaction.kredit;
                         });
                     }
 
                     totalDebetReport.textContent = formatRupiah(totalDebet);
                     totalKreditReport.textContent = formatRupiah(totalKredit);
-                    finalBalanceReport.textContent = formatRupiah(totalDebet - totalKredit);
+                    const finalBalance = totalDebet - totalKredit;
+                    finalBalanceReport.textContent = formatRupiah(finalBalance);
+                    // Add class for visual feedback
+                    if (finalBalance > 0) finalBalanceReport.classList.add('positive'); else if (finalBalance < 0) finalBalanceReport.classList.add('negative'); else { finalBalanceReport.classList.remove('positive', 'negative'); }
                 })
                 .catch(error => {
                     console.error("Error generating report:", error);
                     alert('Gagal membuat laporan: ' + error.message);
                 });
+        }
+
+        // Laporan Saldo per Customer/Supplier
+        function loadMasterDataBalanceReport() {
+            database.ref('masterData').on('value', snapshot => {
+                masterDataBalanceReportBody.innerHTML = '';
+                const data = snapshot.val() || {};
+                const sortedMasterData = Object.keys(data).map(key => ({ id: key, ...data[key] }))
+                                        .sort((a, b) => a.name.localeCompare(b.name));
+
+                if (sortedMasterData.length === 0) {
+                    masterDataBalanceReportBody.innerHTML = '<tr><td colspan="3" class="text-center">Belum ada data Customer/Supplier.</td></tr>';
+                } else {
+                    sortedMasterData.forEach(item => {
+                        // Only show Customer and Supplier in this report
+                        if (item.type === 'Customer' || item.type === 'Supplier') {
+                            const row = masterDataBalanceReportBody.insertRow();
+                            row.insertCell(0).textContent = item.name;
+                            row.insertCell(1).textContent = item.type;
+                            row.insertCell(2).textContent = formatRupiah(item.balance || 0);
+                        }
+                    });
+                     if (masterDataBalanceReportBody.rows.length === 0) {
+                        masterDataBalanceReportBody.innerHTML = '<tr><td colspan="3" class="text-center">Tidak ada Customer atau Supplier.</td></tr>';
+                    }
+                }
+            }, error => {
+                console.error("Error loading master data balance report:", error);
+                masterDataBalanceReportBody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: red;">Gagal memuat laporan saldo.</td></tr>';
+            });
         }
 
         // Fungsi untuk mengunduh laporan sebagai PDF (membutuhkan jsPDF dan html2canvas)
@@ -1379,48 +1524,62 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('p', 'pt', 'a4'); // Portrait, points, A4
 
-                const reportTable = document.querySelector('#report-tab table'); // Get the table element
+                const reportTable = document.querySelector('#report-tab table:first-of-type'); // Select the first table (detail transaksi)
+                const balanceTable = document.querySelector('#report-tab table:last-of-type'); // Select the last table (saldo per customer/supplier)
 
-                html2canvas(reportTable, { scale: 2 }).then(canvas => { // Higher scale for better quality
-                    const imgData = canvas.toDataURL('image/png');
-                    const imgWidth = doc.internal.pageSize.getWidth() - 40; // Page width - margin
-                    const imgHeight = canvas.height * imgWidth / canvas.width;
-                    let heightLeft = imgHeight;
-                    let position = 40; // Initial Y position for image
+                // Function to add a table to PDF
+                const addTableToPdf = (tableElement, title, startYPos) => {
+                    return html2canvas(tableElement, { scale: 2 }).then(canvas => { // Higher scale for better quality
+                        const imgData = canvas.toDataURL('image/png');
+                        const imgWidth = doc.internal.pageSize.getWidth() - 40; // Page width - margin
+                        const imgHeight = canvas.height * imgWidth / canvas.width;
+                        let heightLeft = imgHeight;
+                        let position = startYPos; // Initial Y position for image
 
-                    // Add title and info
-                    doc.setFontSize(18);
-                    doc.text("Laporan Transaksi", 20, 30);
-                    doc.setFontSize(10);
-                    doc.text(`Periode: ${reportStartDateInput.value} s/d ${reportEndDateInput.value}`, 20, 45);
-                    doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID')}`, 20, 55);
+                        // Add title for table
+                        if (title) {
+                            doc.setFontSize(14);
+                            doc.text(title, 20, position);
+                            position += 15; // Space after title
+                        }
 
-                    // Add the image of the table
-                    doc.addImage(imgData, 'PNG', 20, position + 20, imgWidth, imgHeight); // Add image with a bit of top margin
-                    heightLeft -= (doc.internal.pageSize.getHeight() - (position + 20));
-
-                    // For multiple pages if content is too long
-                    let pageNum = 1;
-                    while (heightLeft >= 0) {
-                        position = heightLeft - imgHeight; // Calculate position for next part
-                        doc.addPage();
                         doc.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-                        heightLeft -= doc.internal.pageSize.getHeight();
-                        pageNum++;
-                    }
+                        heightLeft -= (doc.internal.pageSize.getHeight() - position);
 
-                    // Add summary on a new page or at the end if space permits
-                    // Adding on a new page for clarity
-                    doc.addPage();
-                    doc.setFontSize(12);
-                    doc.text("Ringkasan Laporan", 20, 30);
+                        while (heightLeft >= 0) {
+                            doc.addPage();
+                            position = 20; // Reset position for new page top margin
+                            doc.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
+                            heightLeft -= doc.internal.pageSize.getHeight();
+                        }
+                        return doc.internal.pageSize.height - heightLeft; // Return space used on last page
+                    });
+                };
+
+                // Main Report Info
+                doc.setFontSize(18);
+                doc.text("Laporan Transaksi", 20, 30);
+                doc.setFontSize(10);
+                doc.text(`Periode: ${reportStartDateInput.value} s/d ${reportEndDateInput.value}`, 20, 45);
+                doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID')}`, 20, 55);
+
+                let currentY = 70; // Starting Y position after header info
+
+                addTableToPdf(reportTable, "Detail Transaksi", currentY).then(tableHeight => {
+                    currentY += tableHeight + 20; // Update Y for next element
+
+                    // Add summary box
                     doc.setFontSize(10);
-                    doc.text(`Total Debet: ${totalDebetReport.textContent}`, 20, 50);
-                    doc.text(`Total Kredit: ${totalKreditReport.textContent}`, 20, 65);
-                    doc.text(`Saldo Akhir: ${finalBalanceReport.textContent}`, 20, 80);
+                    doc.text(`Total Debet: ${totalDebetReport.textContent}`, 20, currentY);
+                    doc.text(`Total Kredit: ${totalKreditReport.textContent}`, 20, currentY + 15);
+                    doc.text(`Saldo Akhir: ${finalBalanceReport.textContent}`, 20, currentY + 30);
+                    currentY += 45; // Space for summary
 
-                    doc.save(`Laporan_Transaksi_${reportStartDateInput.value}_${reportEndDateInput.value}.pdf`);
-                    alert('Laporan PDF berhasil dibuat dan diunduh!');
+                    // Add second table (Master Data Balance)
+                    addTableToPdf(balanceTable, "Laporan Saldo per Customer/Supplier", currentY).then(() => {
+                        doc.save(`Laporan_Transaksi_Roda_Toko_${reportStartDateInput.value}_${reportEndDateInput.value}.pdf`);
+                        alert('Laporan PDF berhasil dibuat dan diunduh!');
+                    });
                 }).catch(error => {
                     console.error("Error generating PDF:", error);
                     alert("Gagal membuat laporan PDF. Pastikan tabel terlihat di layar atau coba lagi.");
@@ -1432,9 +1591,9 @@
         // --- Saldo Bank Tab Logic ---
         bankAccountBalanceInput.addEventListener('input', function() {
             // Format to Rupiah when user types (on the fly visual)
-            let value = this.value.replace(/\./g, ''); // Remove existing dots
+            let value = this.value.replace(/\./g, ''); // Remove existing dots for formatting
             if (!isNaN(parseFloat(value))) {
-                this.value = formatRupiah(parseFloat(value)).replace('Rp ', ''); // Remove 'Rp ' for easier number input
+                this.value = formatRupiah(parseFloat(value)).replace('Rp', '').trim(); // Remove 'Rp ' for easier number input
             }
         });
 
@@ -1467,7 +1626,7 @@
                 bankAccountsList.innerHTML = ''; // Clear existing list
                 const data = snapshot.val();
                 if (data) {
-                    // Sort accounts by timestamp if needed, or by name
+                    // Sort accounts by name for consistent display
                     const sortedAccounts = Object.keys(data).map(key => ({ id: key, ...data[key] }))
                         .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -1499,7 +1658,7 @@
                 if (newName === null || newName.trim() === '') return;
 
                 let newBalance = prompt('Edit Saldo (Rp):', account.balance);
-                newBalance = parseFloat(newBalance.replace(/[^0-9,-]+/g, "").replace(',', '.')); // Parse input
+                newBalance = parseRupiah(newBalance); // Use parseRupiah to convert input string to number
 
                 if (isNaN(newBalance)) {
                     alert('Saldo tidak valid.');
