@@ -3,1091 +3,493 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Laporan Transaksi</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
+    <title id="app-title">Roda Toko - Aplikasi Transaksi</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#3498db">
-    <link rel="apple-touch-icon" href="/logo192.png"> <style>
+    <meta name="theme-color" content="#2196F3">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <style>
         :root {
-            --primary: #3498db;
-            --secondary: #2c3e50;
-            --success: #2ecc71;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --info: #1abc9c;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --gray: #6c757d;
-            --light-gray: #e9ecef;
+            --primary-color: #2196F3; /* Biru */
+            --secondary-color: #4CAF50; /* Hijau */
+            --accent-color: #FFC107; /* Kuning */
+            --text-color: #333;
+            --light-gray: #f4f4f4;
+            --dark-gray: #555;
+            --border-color: #ddd;
         }
-        
-        * {
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f5f7fa;
-            color: #333;
+            background-color: var(--light-gray);
+            color: var(--text-color);
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        
+
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 15px;
         }
-        
-        /* Header Styles */
+
         header {
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            background-color: var(--primary-color);
             color: white;
             padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        
+
         .header-content {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
+            align-items: center;
+            flex-wrap: wrap; /* Izinkan wrap pada mobile */
         }
-        
+
         .logo-section {
             display: flex;
             align-items: center;
-            gap: 15px;
+            margin-bottom: 10px; /* Spasi di mobile */
         }
-        
+
         .logo {
-            width: 60px;
-            height: 60px;
-            background: white;
+            width: 50px;
+            height: 50px;
+            background-color: white;
             border-radius: 50%;
             display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 24px;
-            color: var(--primary);
-            font-weight: bold;
-            overflow: hidden; 
+            align-items: center;
+            margin-right: 15px;
+            overflow: hidden; /* Pastikan gambar logo tidak keluar */
         }
 
         .logo img {
             max-width: 100%;
             max-height: 100%;
-            object-fit: cover;
+            display: block;
         }
-        
+
         .store-info h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
+            margin: 0;
+            font-size: 1.8em;
+            color: white;
         }
-        
+
         .store-info p {
-            font-size: 0.9rem;
-            opacity: 0.9;
+            margin: 0;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.8);
         }
-        
+
         .date-display {
-            font-size: 0.9rem;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 5px 15px;
-            border-radius: 20px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px; /* Spasi di mobile */
         }
-        
-        /* Navigation */
+
         nav {
-            background: white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            display: flex; /* Untuk menempatkan logout di kanan */
-            justify-content: space-between; /* Untuk menempatkan logout di kanan */
-            align-items: center; /* Untuk menempatkan logout di kanan */
-            padding-right: 15px; /* Sesuaikan padding */
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Izinkan wrap pada mobile */
         }
-        
+
         .nav-tabs {
             display: flex;
             list-style: none;
-            overflow-x: auto;
-            white-space: nowrap;
-            margin-bottom: 0; /* Hilangkan margin bawah default ul */
+            margin: 0;
+            padding: 0;
+            overflow-x: auto; /* Memungkinkan scroll horizontal */
+            -webkit-overflow-scrolling: touch; /* Untuk scroll yang lebih halus di iOS */
+            -ms-overflow-style: -ms-autohiding-scrollbar; /* Untuk IE/Edge */
+            white-space: nowrap; /* Menjaga semua tab dalam satu baris */
+            flex-grow: 1; /* Memungkinkan tab mengisi ruang */
         }
-        
+
         .nav-tabs li {
             padding: 15px 20px;
             cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            color: var(--dark-gray);
             border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-            font-weight: 500;
+            flex-shrink: 0; /* Penting: mencegah item mengecil di mobile */
         }
-        
+
+        .nav-tabs li:hover {
+            background-color: var(--light-gray);
+        }
+
         .nav-tabs li.active {
-            border-bottom: 3px solid var(--primary);
-            color: var(--primary);
-        }
-        
-        .nav-tabs li:hover:not(.active) {
-            background: var(--light-gray);
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background-color: var(--light-gray);
         }
 
         .logout-btn {
-            background: none;
-            border: 1px solid var(--danger);
-            color: var(--danger);
-            padding: 8px 15px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            margin-right: 15px;
         }
+
         .logout-btn:hover {
-            background: var(--danger);
-            color: white;
-            transform: translateY(-1px);
+            background-color: #d32f2f;
         }
-        
-        /* Tab Content */
+
+        main {
+            padding: 20px 0;
+        }
+
         .tab-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .tab-pane {
             display: none;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            padding: 25px;
-            margin-bottom: 30px;
         }
-        
-        .tab-content.active {
+
+        .tab-pane.active {
             display: block;
-            animation: fadeIn 0.5s;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        /* Form Styles */
-        .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--light-gray);
-        }
-        
-        .form-header h2 {
-            color: var(--secondary);
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
+
+        /* Form Styling */
         .form-group {
             margin-bottom: 15px;
         }
-        
+
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark);
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--dark-gray);
         }
-        
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border 0.3s;
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box; /* Pastikan padding tidak menambah lebar */
         }
-        
-        .form-control:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
         }
-        
-        .payment-method-details, .bank-form-section, .master-data-form-section {
-            background: var(--light-gray);
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 10px;
-            display: none;
+
+        .form-group input[type="number"]::-webkit-inner-spin-button,
+        .form-group input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
-        .payment-method-details.active, .bank-form-section.active, .master-data-form-section.active {
-            display: block;
+        .form-group input[type="number"] {
+            -moz-appearance: textfield;
         }
-        
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-        
-        .btn i {
-            margin-right: 8px;
-        }
-        
-        /* Table Styles */
-        .table-container {
-            overflow-x: auto;
-            margin-top: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .filter-section {
+
+        .btn-group {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
+            margin-top: 20px;
         }
-        
-        .filter-control {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            flex-grow: 1;
+        }
+
+        .btn-primary:hover {
+            background-color: #1976D2;
+        }
+
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+            flex-grow: 1;
+        }
+
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+
+        .btn-success {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #388E3C;
+        }
+
+        .btn-warning {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+        }
+
+        .btn-warning:hover {
+            background-color: #FFB300;
+        }
+
+        /* Table Styling */
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            margin-top: 20px;
         }
-        
-        th, td {
-            padding: 15px;
+
+        table th, table td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
             text-align: left;
-            border-bottom: 1px solid var(--light-gray);
         }
-        
-        th {
-            background: var(--secondary);
-            color: white;
-            font-weight: 600;
+
+        table th {
+            background-color: var(--light-gray);
+            font-weight: bold;
         }
-        
-        tr:hover {
-            background: rgba(52, 152, 219, 0.05);
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .hidden { display: none; }
+
+        /* Master Data Table */
+        #master-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-        
-        .debit {
-            color: var(--success);
-            font-weight: 500;
-        }
-        
-        .credit {
-            color: var(--danger);
-            font-weight: 500;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .action-btn {
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            background: var(--light);
+        #master-data-table th, #master-data-table td {
             border: 1px solid #ddd;
-            color: var(--dark);
-            transition: all 0.2s;
+            padding: 8px;
+            text-align: left;
         }
-        
-        .action-btn:hover {
-            background: var(--primary);
+        #master-data-table th {
+            background-color: #f2f2f2;
+        }
+        .master-data-actions button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .master-data-actions .edit-btn { background-color: var(--accent-color); color: var(--text-color); }
+        .master-data-actions .delete-btn { background-color: #f44336; color: white; }
+
+        /* Laporan Section */
+        #report-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        #report-filters input, #report-filters select, #report-filters button {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        #report-filters button {
+            background-color: var(--primary-color);
             color: white;
-            border-color: var(--primary);
+            cursor: pointer;
         }
-        
-        /* Chart Section */
-        .chart-container {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin-top: 30px;
+        #report-filters button:hover {
+            background-color: #1976D2;
         }
-        
-        .chart-header {
+        #report-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+        #report-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #report-table th, #report-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+            white-space: nowrap; /* Mencegah teks terpotong di tabel */
+        }
+        #report-table th {
+            background-color: var(--light-gray);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .report-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        /* Saldo Bank Section */
+        #bank-account-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        #bank-account-form input, #bank-account-form button {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        #bank-account-form input {
+            flex-grow: 1;
+        }
+        #bank-account-form button {
+            background-color: var(--secondary-color);
+            color: white;
+            cursor: pointer;
+        }
+        #bank-account-form button:hover {
+            background-color: #388E3C;
+        }
+        #bank-accounts-list {
+            list-style: none;
+            padding: 0;
+        }
+        #bank-accounts-list li {
+            background-color: var(--light-gray);
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            font-weight: bold;
         }
-        
-        .chart-wrapper {
-            height: 400px;
-            position: relative;
+        #bank-accounts-list li span:last-child {
+            color: var(--primary-color);
         }
-        
-        /* Summary Cards */
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .summary-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            transition: transform 0.3s;
-        }
-        
-        .summary-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .summary-card i {
-            font-size: 2.5rem;
+
+        /* Pengaturan Section */
+        #settings-form .form-group {
             margin-bottom: 15px;
         }
-        
-        .card-title {
-            font-size: 1.1rem;
-            color: var(--gray);
-            margin-bottom: 10px;
+        #settings-form .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
         }
-        
-        .card-value {
-            font-size: 1.8rem;
-            font-weight: 700;
+        #settings-form .form-group input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
         }
-        
-        .supplier-card {
-            border-top: 4px solid var(--primary);
-        }
-        
-        .supplier-card i {
-            color: var(--primary);
-        }
-        
-        .customer-card {
-            border-top: 4px solid var(--info);
-        }
-        
-        .customer-card i {
-            color: var(--info);
-        }
-        
-        .debt-card {
-            border-top: 4px solid var(--danger);
-        }
-        
-        .debt-card i {
-            color: var(--danger);
-        }
-        
-        .receivable-card {
-            border-top: 4px solid var(--success);
-        }
-        
-        .receivable-card i {
-            color: var(--success);
-        }
-        
-        /* Export Buttons */
-        .export-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-        
-        /* Footer */
-        footer {
-            background: var(--secondary);
+        #settings-form button {
+            background-color: var(--primary-color);
             color: white;
-            text-align: center;
-            padding: 20px 0;
-            margin-top: 40px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
         }
-        
+        #settings-form button:hover {
+            background-color: #1976D2;
+        }
+
         /* Responsive Styles */
-        @media (max-width: 992px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .summary-cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
+        @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
-                text-align: center;
-                gap: 15px;
+                align-items: flex-start;
             }
-            
-            .logo-section {
-                justify-content: center;
+            .date-display {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-end;
             }
-        }
-        
-        @media (max-width: 768px) {
             nav {
                 flex-direction: column;
-                padding-right: 0;
+                align-items: stretch;
             }
             .nav-tabs {
                 width: 100%;
-                justify-content: center;
+                justify-content: flex-start;
+                padding-bottom: 5px; /* Sedikit padding agar scrollbar terlihat */
+            }
+            .nav-tabs li {
+                font-size: 14px;
+                padding: 12px 15px;
             }
             .logout-btn {
-                margin-top: 10px;
+                margin: 10px auto;
+                width: calc(100% - 30px);
+                max-width: 200px;
             }
-            .nav-tabs {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                -ms-overflow-style: -ms-autohiding-scrollbar;
-            }
-            
-            .nav-tabs li {
-                padding: 12px 15px;
-                font-size: 14px;
-            }
-            
-            .summary-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .filter-section {
+            .btn-group {
                 flex-direction: column;
             }
-            
-            .table-header {
+            .form-group input[type="text"],
+            .form-group input[type="number"],
+            .form-group textarea,
+            .form-group select {
+                width: 100%; /* Full width on mobile */
+            }
+            #report-filters, #bank-account-form {
                 flex-direction: column;
-                align-items: flex-start;
                 gap: 15px;
             }
-        }
-        
-        @media (max-width: 576px) {
-            .tab-content {
-                padding: 15px;
-            }
-            
-            th, td {
-                padding: 10px 8px;
-                font-size: 14px;
-            }
-            
-            .btn {
-                padding: 10px 15px;
-                font-size: 14px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                gap: 5px;
+            #report-filters input, #report-filters select, #report-filters button,
+            #bank-account-form input, #bank-account-form button {
+                width: 100%;
             }
         }
-        
-        /* Popup Styles */
-        .popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        
-        .popup-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .popup-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
-            max-width: 400px;
-            width: 90%;
-            position: relative;
-        }
-
-        .popup-overlay.show .popup-content {
-            transform: translateY(0);
-        }
-        
-        .popup-content h3 {
-            color: var(--success);
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-        
-        .popup-content p {
-            margin-bottom: 20px;
-            line-height: 1.8;
-            color: #555;
-        }
-        
-        .popup-content .btn {
-            background: var(--primary);
-            color: white;
-            width: 100%;
-        }
-
-        .popup-content .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #ccc;
-        }
-        .popup-content .close-btn:hover {
-            color: var(--danger);
-        }
-
-        /* Logo Preview in Settings */
-        .logo-preview-container {
-            margin-top: 10px;
-            border: 1px dashed #ccc;
-            padding: 10px;
-            min-height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            gap: 10px;
-            border-radius: 8px;
-            background-color: var(--light-gray);
-        }
-        .logo-preview-container img {
-            max-width: 100px;
-            max-height: 100px;
-            object-fit: contain;
-            border-radius: 50%;
-        }
-        .logo-preview-container p {
-            color: var(--gray);
-            font-style: italic;
-        }
-
-        /* Form styling for bank accounts & master data */
-        .bank-form-section, .master-data-form-section {
-            background: var(--light-gray);
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none; 
-        }
-        .bank-form-section.active, .master-data-form-section.active {
-            display: block;
-        }
-        .bank-form-section h4, .master-data-form-section h4 {
-            margin-bottom: 15px;
-            color: var(--secondary);
-        }
-
     </style>
 </head>
 <body>
-    <header>
-    <div class="container">
-        <div class="header-content">
-            <div class="logo-section">
-                <div class="logo" id="app-logo">
-                    <img src="/logo.png" alt="Logo Perusahaan Anda"> 
-                </div>
-                <div class="store-info">
-                    <h1 id="header-store-name">Roda Toko</h1>
-                    <p id="header-store-address">Jl. Sudirman No. 123, Jakarta Pusat</p>
-                </div>
-            </div>
-            <div class="date-display">
-                <i class="fas fa-calendar"></i> <span id="current-date">Kamis, 17 Juli 2025</span>
-            </div>
-        </div>
-    </div>
-</header>
-
-    <nav>
-        <div class="container">
-            <ul class="nav-tabs">
-                <li class="active" data-tab="dashboard">Dashboard</li>
-                <li data-tab="transaction">Transaksi</li>
-                <li data-tab="master-data">Master Data</li> <li data-tab="report">Laporan</li>
-                <li data-tab="bank">Saldo Bank</li>
-                <li data-tab="chart">Grafik</li>
-                <li data-tab="setting">Pengaturan</li>
-            </ul>
-            <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div id="dashboard" class="tab-content active">
-            <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
-            
-            <div class="summary-cards">
-                <div class="summary-card supplier-card">
-                    <i class="fas fa-truck-loading"></i>
-                    <div class="card-title">Total Supplier</div>
-                    <div class="card-value" id="supplier-count">0</div>
-                </div>
-                
-                <div class="summary-card customer-card">
-                    <i class="fas fa-users"></i>
-                    <div class="card-title">Total Customer</div>
-                    <div class="card-value" id="customer-count">0</div>
-                </div>
-                
-                <div class="summary-card debt-card">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                    <div class="card-title">Total Hutang</div>
-                    <div class="card-value" id="total-debt">Rp 0</div>
-                </div>
-                
-                <div class="summary-card receivable-card">
-                    <i class="fas fa-hand-holding-usd"></i>
-                    <div class="card-title">Total Piutang</div>
-                    <div class="card-value" id="total-receivable">Rp 0</div>
-                </div>
-            </div>
-            
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><i class="fas fa-history"></i> Transaksi Terbaru</h3>
-                </div>
-                
-                <table id="recent-transactions">
-                    <thead>
-                        <tr>
-                            <th>No. Transaksi</th>
-                            <th>Tanggal</th>
-                            <th>Nama</th>
-                            <th>Jenis</th>
-                            <th>No. Faktur</th>
-                            <th>Debet</th>
-                            <th>Kredit</th>
-                            <th>Saldo (Per Orang)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="transaction" class="tab-content">
-            <div class="form-header">
-                <h2><i class="fas fa-file-invoice-dollar"></i> Form Transaksi</h2>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="trans-number">No. Transaksi</label>
-                    <input type="text" id="trans-number" class="form-control" value="TRX-20250717-001" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="trans-date">Tanggal</label>
-                    <input type="date" id="trans-date" class="form-control" value="2025-07-17">
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="trans-type">Jenis Transaksi</label>
-                    <select id="trans-type" class="form-control">
-                        <option value="">Pilih Jenis Transaksi</option>
-                        <option value="supplier">Supplier (Hutang)</option>
-                        <option value="customer">Customer (Piutang)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="trans-name">Nama Supplier/Customer</label>
-                    <input type="text" id="trans-name" class="form-control" placeholder="Masukkan nama">
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="invoice-number">No. Faktur</label>
-                    <input type="text" id="invoice-number" class="form-control" placeholder="Masukkan nomor faktur">
-                </div>
-                
-                <div class="form-group">
-                    <label for="payment-method">Metode Pembayaran</label>
-                    <select id="payment-method" class="form-control">
-                        <option value="cash">Cash</option>
-                        <option value="transfer">Transfer</option>
-                        <option value="giro">Giro</option>
-                        <option value="cek">Cek</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div id="payment-details" class="payment-method-details">
-                <div class="form-group">
-                    <label id="payment-detail-label">Detail Pembayaran</label>
-                    <input type="text" id="payment-detail-input" class="form-control" placeholder="Masukkan detail pembayaran">
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="amount">Nominal</label>
-                    <input type="number" id="amount" class="form-control" placeholder="Masukkan nominal">
-                </div>
-                
-                <div class="form-group">
-                    <label for="description">Keterangan</label>
-                    <textarea id="description" class="form-control" rows="3" placeholder="Masukkan keterangan transaksi"></textarea>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="debit">Debet</label>
-                    <input type="text" id="debit" class="form-control" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="credit">Kredit</label>
-                    <input type="text" id="credit" class="form-control" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="balance">Saldo Per Nama</label>
-                    <input type="text" id="balance" class="form-control" readonly>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <button id="save-btn" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Transaksi</button>
-                <button id="reset-btn" class="btn btn-danger"><i class="fas fa-times"></i> Reset Form</button>
-            </div>
-        </div>
-
-        <div id="master-data" class="tab-content">
-            <div class="form-header">
-                <h2><i class="fas fa-address-book"></i> Master Data Customer & Supplier</h2>
-                <button id="show-add-master-data-form-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Baru</button>
-            </div>
-
-            <div id="add-edit-master-data-form-section" class="master-data-form-section">
-                <h4>Tambah/Edit Data</h4>
-                <input type="hidden" id="master-data-id">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="master-data-type">Tipe:</label>
-                        <select id="master-data-type" class="form-control">
-                            <option value="customer">Customer</option>
-                            <option value="supplier">Supplier</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="master-data-name">Nama:</label>
-                        <input type="text" id="master-data-name" class="form-control" placeholder="Nama Customer/Supplier">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="master-data-phone">Telepon:</label>
-                        <input type="text" id="master-data-phone" class="form-control" placeholder="Nomor Telepon">
-                    </div>
-                    <div class="form-group">
-                        <label for="master-data-address">Alamat:</label>
-                        <textarea id="master-data-address" class="form-control" rows="2" placeholder="Alamat Lengkap"></textarea>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <button id="save-master-data-btn" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Data</button>
-                    <button id="cancel-master-data-form-btn" class="btn btn-danger"><i class="fas fa-times"></i> Batal</button>
-                </div>
-            </div>
-
-            <div class="table-container" style="margin-top: 20px;">
-                <h3>Daftar Customer & Supplier</h3>
-                <table id="master-data-table">
-                    <thead>
-                        <tr>
-                            <th>Tipe</th>
-                            <th>Nama</th>
-                            <th>Telepon</th>
-                            <th>Alamat</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="report" class="tab-content">
-            <div class="form-header">
-                <h2><i class="fas fa-chart-bar"></i> Laporan Transaksi</h2>
-                <div class="export-buttons">
-                    <button class="btn btn-success"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-                    <button id="print-report-pdf-btn" class="btn btn-danger"><i class="fas fa-file-pdf"></i> PDF</button>
-                    <button class="btn btn-success"><i class="fas fa-file-excel"></i> Excel</button>
-                </div>
-            </div>
-            
-            <div class="filter-section">
-                <select id="filter-type" class="filter-control">
-                    <option value="all">Semua Jenis</option>
-                    <option value="supplier">Supplier</option>
-                    <option value="customer">Customer</option>
-                </select>
-                
-                <select id="filter-method" class="filter-control">
-                    <option value="all">Semua Metode</option>
-                    <option value="cash">Cash</option>
-                    <option value="transfer">Transfer</option>
-                    <option value="giro">Giro</option>
-                    <option value="cek">Cek</option>
-                </select>
-                
-                <input type="text" id="filter-name" class="filter-control" placeholder="Cari nama...">
-                
-                <input type="date" id="filter-start-date" class="filter-control">
-                
-                <input type="date" id="filter-end-date" class="filter-control">
-                
-                <button id="apply-filter" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
-            </div>
-            
-            <div class="table-container">
-                <h3>Tabel Transaksi Lengkap</h3>
-                <table id="report-table">
-                    <thead>
-                        <tr>
-                            <th>No. Transaksi</th>
-                            <th>Tanggal</th>
-                            <th>Nama</th>
-                            <th>Jenis</th>
-                            <th>No. Faktur</th>
-                            <th>Metode</th>
-                            <th>Detail Pembayaran</th>
-                            <th>Debet</th>
-                            <th>Kredit</th>
-                            <th>Keterangan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-            </div>
-
-            <div class="table-container" style="margin-top: 40px;">
-                <h3><i class="fas fa-users-cog"></i> Laporan Saldo per Customer/Supplier</h3>
-                <table id="balance-report-table">
-                    <thead>
-                        <tr>
-                            <th>Nama</th>
-                            <th>Tipe</th>
-                            <th>Total Debet</th>
-                            <th>Total Kredit</th>
-                            <th>Saldo Akhir</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="bank" class="tab-content">
-            <div class="form-header">
-                <h2><i class="fas fa-university"></i> Saldo Bank</h2>
-                <button id="show-add-bank-form-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Akun Bank Baru</button>
-            </div>
-            
-            <div id="add-edit-bank-form-section" class="bank-form-section">
-                <h4>Tambah/Edit Rekening Bank</h4>
-                <input type="hidden" id="bank-account-id">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="bank-name">Nama Bank</label>
-                        <input type="text" id="bank-name" class="form-control" placeholder="Contoh: Bank Mandiri">
-                    </div>
-                    <div class="form-group">
-                        <label for="account-number">Nomor Rekening</label>
-                        <input type="text" id="account-number" class="form-control" placeholder="Contoh: 1234567890">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="account-type">Jenis Rekening</label>
-                        <select id="account-type" class="form-control">
-                            <option value="Tabungan">Tabungan</option>
-                            <option value="Giro">Giro</option>
-                            <option value="Deposito">Deposito</option>
-                            <option value="Lainnya">Lainnya</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="initial-balance">Saldo Awal</label>
-                        <input type="number" id="initial-balance" class="form-control" placeholder="Contoh: 10000000">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <button id="save-bank-account-btn" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Rekening</button>
-                    <button id="cancel-bank-form-btn" class="btn btn-danger"><i class="fas fa-times"></i> Batal</button>
-                </div>
-            </div>
-
-            <div class="table-container" style="margin-top: 20px;">
-                <h3>Daftar Akun Bank</h3>
-                <table id="bank-accounts-table">
-                    <thead>
-                        <tr>
-                            <th>Nama Bank</th>
-                            <th>Nomor Rekening</th>
-                            <th>Jenis Rekening</th>
-                            <th>Saldo</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="chart" class="tab-content">
-            <h2><i class="fas fa-chart-line"></i> Grafik Transaksi</h2>
-            <p>Visualisasi data transaksi dalam bentuk grafik akan ditampilkan di sini.</p>
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h3>Grafik Aliran Kas Bulanan</h3>
-                    <select class="filter-control">
-                        <option value="2025">Tahun 2025</option>
-                        <option value="2024">Tahun 2024</option>
-                    </select>
-                </div>
-                <div class="chart-wrapper">
-                    <canvas id="myChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div id="setting" class="tab-content">
-            <h2><i class="fas fa-cog"></i> Pengaturan Aplikasi</h2>
-            <p>Kelola pengaturan aplikasi Anda di sini.</p>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="store-name">Nama Toko</label>
-                    <input type="text" id="store-name" class="form-control" value="Roda Toko">
-                </div>
-                <div class="form-group">
-                    <label for="store-address">Alamat Toko</label>
-                    <textarea id="store-address" class="form-control" rows="3">Jl. Sudirman No. 123, Jakarta Pusat</textarea>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="logo-url-input">URL Logo (HTML/Base64)</label>
-                    <input type="text" id="logo-url-input" class="form-control" placeholder="Contoh: https://example.com/logo.png atau data:image/png;base64,...">
-                    <div class="logo-preview-container">
-                        <img id="current-logo-preview" src="" alt="Logo Preview" style="display: none;">
-                        <p id="no-logo-text">Tidak ada logo yang diatur.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="form-row">
-                <button id="save-settings-btn" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Pengaturan</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="success-popup" class="popup-overlay">
-        <div class="popup-content">
-            <button class="close-btn" id="close-popup-btn">&times;</button>
-            <h3><i class="fas fa-check-circle"></i> Transaksi Berhasil Disimpan!</h3>
-            <p id="popup-details"></p>
-            <button class="btn btn-primary" id="popup-ok-btn">OK</button>
-        </div>
-    </div>
-
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Aplikasi Laporan Transaksi Supplier & Customer. Hak Cipta Dilindungi.</p>
-            <p>Powered by Firebase Realtime Database</p>
-        </div>
-    </footer>
-
     <script>
-        // =====================
-        // FIREBASE CONFIGURATION
-        // =====================
-        // Ganti dengan konfigurasi Firebase Anda
+        // GANTI DENGAN KONFIGURASI FIREBASE ANDA YANG SEBENARNYA!
         const firebaseConfig = {
   apiKey: "AIzaSyCubZ9gYfe2sIiu89yDUPQzsNDy_skU-SQ",
   authDomain: "ap-ar-repot.firebaseapp.com",
@@ -1097,1052 +499,759 @@
   messagingSenderId: "93516660589",
   appId: "1:93516660589:web:2b52d873016de2cb2c6464"
 };
-        
+
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const database = firebase.database();
-        const auth = firebase.auth(); // Inisialisasi Firebase Auth
 
-        // =====================
-        // PWA (PROGRESSIVE WEB APP) REGISTRATION
-        // =====================
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker terdaftar:', registration);
-                    })
-                    .catch(error => {
-                        console.error('Pendaftaran Service Worker gagal:', error);
-                    });
-            });
-        }
-
-        // =====================
-        // AUTHENTICATION CHECK
-        // =====================
+        // Cek status autentikasi saat aplikasi dimuat
         auth.onAuthStateChanged(user => {
             if (!user) {
-                // Jika pengguna belum login, arahkan ke halaman login
+                // Jika tidak ada pengguna yang login, arahkan ke halaman login
                 window.location.href = 'login.html';
             } else {
-                console.log('User is logged in:', user.email);
-                // Lanjutkan inisialisasi aplikasi jika sudah login
-                initializeApplication();
+                // Pengguna sudah login, lanjutkan inisialisasi aplikasi
+                console.log("User logged in:", user.email);
+                initializeApp();
             }
         });
 
-        // Logout button handler
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            auth.signOut().then(() => {
-                // Redirect ke halaman login setelah logout
-                window.location.href = 'login.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
-                alert('Gagal logout: ' + error.message);
-            });
-        });
+        // Fungsi untuk menginisialisasi aplikasi setelah login
+        function initializeApp() {
+            // Register Service Worker for PWA
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js')
+                        .then(registration => {
+                            console.log('Service Worker registered with scope:', registration.scope);
+                        })
+                        .catch(error => {
+                            console.error('Service Worker registration failed:', error);
+                        });
+                });
+            }
 
-        // =====================
-        // GLOBAL APPLICATION INITIALIZATION (Dipanggil setelah login)
-        // =====================
-        function initializeApplication() {
-            // Set current date
-            document.getElementById('current-date').textContent = new Date().toLocaleDateString('id-ID', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            // Tab navigation
-            document.querySelectorAll('.nav-tabs li').forEach(tab => {
+            // Global variables for dynamic content
+            let masterData = {}; // Cache master data
+            let bankAccounts = {}; // Cache bank accounts
+
+            // --- UI Elements ---
+            const appTitle = document.getElementById('app-title');
+            const headerStoreName = document.getElementById('header-store-name');
+            const headerStoreAddress = document.getElementById('header-store-address');
+            const appLogo = document.getElementById('app-logo'); // Div for logo
+
+            const transactionAmountInput = document.getElementById('transaction-amount');
+            const transactionDescriptionInput = document.getElementById('transaction-description');
+            const transactionTypeSelect = document.getElementById('transaction-type');
+            const transactionMasterDataSelect = document.getElementById('transaction-master-data');
+            const transactionDebetInput = document.getElementById('transaction-debet');
+            const transactionKreditInput = document.getElementById('transaction-kredit');
+            const transactionBalanceInput = document.getElementById('transaction-balance');
+            const saveTransactionBtn = document.getElementById('save-transaction-btn');
+            const resetFormBtn = document.getElementById('reset-form-btn');
+
+            const masterDataNameInput = document.getElementById('master-data-name');
+            const masterDataTypeSelect = document.getElementById('master-data-type');
+            const addMasterDataBtn = document.getElementById('add-master-data-btn');
+            const masterDataTableBody = document.getElementById('master-data-table-body');
+
+            const reportStartDateInput = document.getElementById('report-start-date');
+            const reportEndDateInput = document.getElementById('report-end-date');
+            const generateReportBtn = document.getElementById('generate-report-btn');
+            const downloadPdfBtn = document.getElementById('download-pdf-btn');
+            const reportTableBody = document.getElementById('report-table-body');
+            const totalDebetReport = document.getElementById('total-debet-report');
+            const totalKreditReport = document.getElementById('total-kredit-report');
+            const finalBalanceReport = document.getElementById('final-balance-report');
+
+            const bankAccountNameInput = document.getElementById('bank-account-name');
+            const bankAccountBalanceInput = document.getElementById('bank-account-balance');
+            const addBankAccountBtn = document.getElementById('add-bank-account-btn');
+            const bankAccountsList = document.getElementById('bank-accounts-list');
+
+            const settingsStoreNameInput = document.getElementById('store-name-input');
+            const settingsStoreAddressInput = document.getElementById('store-address-input');
+            const settingsLogoUrlInput = document.getElementById('logo-url-input'); // Untuk logo dinamis
+            const saveSettingsBtn = document.getElementById('save-settings-btn');
+
+
+            // --- Tab Navigation ---
+            const navTabs = document.querySelectorAll('.nav-tabs li');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            navTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    document.querySelectorAll('.nav-tabs li').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
+                    navTabs.forEach(item => item.classList.remove('active'));
+                    tabPanes.forEach(pane => pane.classList.remove('active'));
+
                     tab.classList.add('active');
                     document.getElementById(tab.dataset.tab).classList.add('active');
-                    
-                    if (tab.dataset.tab === 'report') {
-                        loadTransactionsForReport();
-                    } else if (tab.dataset.tab === 'dashboard') {
-                        updateDashboard();
-                    } else if (tab.dataset.tab === 'chart') {
-                        renderChart(); 
-                    } else if (tab.dataset.tab === 'bank') {
-                        loadBankAccounts(); 
-                        document.getElementById('add-edit-bank-form-section').classList.remove('active'); 
-                    } else if (tab.dataset.tab === 'setting') {
-                        loadSettings(); 
-                    } else if (tab.dataset.tab === 'master-data') { // Load master data
+
+                    // Refresh data when tab is active
+                    if (tab.dataset.tab === 'master-data-tab') {
                         loadMasterData();
-                        document.getElementById('add-edit-master-data-form-section').classList.remove('active');
+                    } else if (tab.dataset.tab === 'report-tab') {
+                        // Set default report dates
+                        const today = new Date();
+                        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                        reportStartDateInput.value = firstDayOfMonth.toISOString().split('T')[0];
+                        reportEndDateInput.value = today.toISOString().split('T')[0];
+                        // generateReport(); // Auto-generate on tab switch
+                    } else if (tab.dataset.tab === 'bank-accounts-tab') {
+                        loadBankAccounts();
+                    } else if (tab.dataset.tab === 'settings-tab') {
+                        loadSettings();
                     }
                 });
             });
-            
-            // Payment method details
-            const paymentMethod = document.getElementById('payment-method');
-            const paymentDetails = document.getElementById('payment-details');
-            const paymentDetailLabel = document.getElementById('payment-detail-label');
-            const paymentDetailInput = document.getElementById('payment-detail-input');
-            
-            paymentMethod.addEventListener('change', () => {
-                const method = paymentMethod.value;
-                if (method === 'giro') {
-                    paymentDetails.classList.add('active');
-                    paymentDetailLabel.textContent = 'Nomor Giro';
-                    paymentDetailInput.placeholder = 'Masukkan nomor giro';
-                } else if (method === 'transfer') {
-                    paymentDetails.classList.add('active');
-                    paymentDetailLabel.textContent = 'Nama Bank';
-                    paymentDetailInput.placeholder = 'Masukkan nama bank';
-                } else if (method === 'cek') {
-                    paymentDetails.classList.add('active');
-                    paymentDetailLabel.textContent = 'Nomor Cek';
-                    paymentDetailInput.placeholder = 'Masukkan nomor cek';
-                } else {
-                    paymentDetails.classList.remove('active');
-                    paymentDetailInput.value = '';
-                }
-            });
-            
-            // Format Rupiah
-            function formatRupiah(angka) {
-                if (angka === null || angka === undefined || isNaN(angka)) return 'Rp 0';
-                let number_string = angka.toString().replace(/[^,\d]/g, '').toString(),
-                    split = number_string.split(','),
-                    sisa = split[0].length % 3,
-                    rupiah = split[0].substr(0, sisa),
-                    ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-            
-                if (ribuan) {
-                    let separator = sisa ? '.' : '';
-                    rupiah += separator + ribuan.join('.');
-                }
-            
-                rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-                return 'Rp ' + rupiah;
+
+            // Activate default tab (Transaksi)
+            document.querySelector('.nav-tabs li[data-tab="transaction-tab"]').click();
+
+            // --- Date Display ---
+            function updateCurrentDate() {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('current-date').textContent = new Date().toLocaleDateString('id-ID', options);
             }
-            
-            // Auto calculate debit/credit based on transaction type
-            const transType = document.getElementById('trans-type');
-            const amountInput = document.getElementById('amount');
-            const debitInput = document.getElementById('debit');
-            const creditInput = document.getElementById('credit');
-            const balanceInput = document.getElementById('balance');
-            const transName = document.getElementById('trans-name');
-            const invoiceNumber = document.getElementById('invoice-number');
-            const description = document.getElementById('description');
-            
-            let currentBalances = {}; // Object to store current balance per customer/supplier
+            updateCurrentDate();
 
-            function calculateTransaction() {
-                const type = transType.value;
-                const amount = parseFloat(amountInput.value) || 0;
-                const name = transName.value.trim();
-                
-                debitInput.value = formatRupiah(0);
-                creditInput.value = formatRupiah(0);
-                balanceInput.value = formatRupiah(0); 
+            // --- Firebase Data Functions ---
 
-                if (type && amount > 0) {
-                    if (type === 'supplier') { 
-                        creditInput.value = formatRupiah(amount);
-                    } else if (type === 'customer') { 
-                        debitInput.value = formatRupiah(amount);
-                    }
+            // Load Settings (Store Name, Address, Logo)
+            function loadSettings() {
+                database.ref('storeSettings').once('value', snapshot => {
+                    const settings = snapshot.val();
+                    if (settings) {
+                        headerStoreName.textContent = settings.storeName || 'Roda Toko';
+                        headerStoreAddress.textContent = settings.storeAddress || 'Jl. Sudirman No. 123, Jakarta Pusat';
+                        appTitle.textContent = (settings.storeName || 'Roda Toko') + ' - Aplikasi Transaksi';
 
-                    if (name && currentBalances[name] !== undefined) {
-                        let calculatedBalance = currentBalances[name];
-                        if (type === 'supplier') { 
-                            calculatedBalance -= amount;
-                        } else if (type === 'customer') { 
-                            calculatedBalance += amount;
+                        settingsStoreNameInput.value = settings.storeName || '';
+                        settingsStoreAddressInput.value = settings.storeAddress || '';
+                        settingsLogoUrlInput.value = settings.logoUrl || '';
+
+                        // Update logo display
+                        if (settings.logoUrl) {
+                            appLogo.innerHTML = `<img src="${settings.logoUrl}" alt="Logo Toko">`;
+                        } else {
+                            appLogo.innerHTML = `<i class="fas fa-store"></i>`; // Default icon if no logo
                         }
-                        balanceInput.value = formatRupiah(calculatedBalance);
-                    } else if (name) {
-                        let initialCalcBalance = 0;
-                        if (type === 'customer') { 
-                            initialCalcBalance = amount;
-                        } else if (type === 'supplier') { 
-                            initialCalcBalance = -amount;
-                        }
-                        balanceInput.value = formatRupiah(initialCalcBalance);
                     }
-                }
+                });
             }
-            
-            transType.addEventListener('change', calculateTransaction);
-            amountInput.addEventListener('input', calculateTransaction);
-            transName.addEventListener('input', calculateTransaction); 
+            loadSettings(); // Load settings on app start
 
-            // Reset form function
-            function resetForm() {
-                document.getElementById('trans-type').value = '';
-                document.getElementById('trans-name').value = '';
-                document.getElementById('invoice-number').value = '';
-                document.getElementById('payment-method').value = 'cash';
-                document.getElementById('amount').value = '';
-                document.getElementById('description').value = '';
-                debitInput.value = formatRupiah(0);
-                creditInput.value = formatRupiah(0);
-                balanceInput.value = formatRupiah(0);
-                paymentDetails.classList.remove('active');
-                paymentDetailInput.value = '';
-                
-                generateTransactionNumber();
-            }
-            
-            // Generate transaction number
-            function generateTransactionNumber() {
-                const now = new Date();
-                const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-                
-                database.ref('transactions').orderByChild('timestamp').limitToLast(1).once('value', (snapshot) => {
-                    let lastNumber = 0;
-                    if (snapshot.exists()) {
-                        snapshot.forEach(childSnapshot => {
-                            const lastTransNum = childSnapshot.val().transactionNumber;
-                            const parts = lastTransNum.split('-');
-                            if (parts.length > 0) {
-                                const numPart = parseInt(parts[parts.length - 1]);
-                                if (!isNaN(numPart)) {
-                                    lastNumber = numPart;
-                                }
-                            }
-                        });
-                    }
-                    const newNumber = String(lastNumber + 1).padStart(3, '0');
-                    document.getElementById('trans-number').value = `TRX-${dateStr}-${newNumber}`;
+            // Save Settings
+            saveSettingsBtn.addEventListener('click', () => {
+                const storeName = settingsStoreNameInput.value.trim();
+                const storeAddress = settingsStoreAddressInput.value.trim();
+                const logoUrl = settingsLogoUrlInput.value.trim();
+
+                database.ref('storeSettings').set({
+                    storeName: storeName,
+                    storeAddress: storeAddress,
+                    logoUrl: logoUrl,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    alert('Pengaturan berhasil disimpan!');
+                    loadSettings(); // Reload settings to update header
                 }).catch(error => {
-                    console.error("Error fetching last transaction number:", error);
-                    const randomNum = Math.floor(Math.random() * 900) + 100;
-                    document.getElementById('trans-number').value = `TRX-${dateStr}-${randomNum}`;
+                    console.error("Error saving settings:", error);
+                    alert('Gagal menyimpan pengaturan: ' + error.message);
+                });
+            });
+
+            // Load Master Data for dropdown
+            function loadMasterDataForDropdown() {
+                database.ref('masterData').on('value', snapshot => {
+                    masterData = snapshot.val() || {};
+                    transactionMasterDataSelect.innerHTML = '<option value="">Pilih Nama/Kategori</option>';
+                    for (let id in masterData) {
+                        const item = masterData[id];
+                        const option = document.createElement('option');
+                        option.value = id;
+                        option.textContent = `${item.name} (${item.type})`;
+                        transactionMasterDataSelect.appendChild(option);
+                    }
                 });
             }
-            
-            // Show success popup
-            const successPopup = document.getElementById('success-popup');
-            const popupDetails = document.getElementById('popup-details');
-            const closePopupBtn = document.getElementById('close-popup-btn');
-            const popupOkBtn = document.getElementById('popup-ok-btn');
+            loadMasterDataForDropdown();
 
-            function showSuccessPopup(transaction) {
-                popupDetails.innerHTML = `
-                    <strong>Transaksi:</strong> ${transaction.type === 'supplier' ? 'Pembelian (Hutang)' : 'Penjualan (Piutang)'}<br>
-                    <strong>Nama:</strong> ${transaction.name}<br>
-                    <strong>Nominal:</strong> ${formatRupiah(transaction.amount)}<br>
-                    <strong>No. Transaksi:</strong> ${transaction.transactionNumber}
-                `;
-                successPopup.classList.add('show');
+            // --- Transaksi Tab Logic ---
+            transactionAmountInput.addEventListener('input', function() {
+                let amount = parseFloat(this.value.replace(/\./g, '')) || 0;
+                this.value = formatRupiah(amount);
+                calculateDebetKreditBalance();
+            });
+
+            transactionTypeSelect.addEventListener('change', calculateDebetKreditBalance);
+            transactionMasterDataSelect.addEventListener('change', calculateDebetKreditBalance);
+
+            function formatRupiah(number) {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
             }
 
-            function hideSuccessPopup() {
-                successPopup.classList.remove('show');
+            function parseRupiah(rupiahString) {
+                return parseFloat(rupiahString.replace(/[^0-9,]+/g, "").replace(',', '.'));
             }
 
-            closePopupBtn.addEventListener('click', hideSuccessPopup);
-            popupOkBtn.addEventListener('click', hideSuccessPopup);
+            function calculateDebetKreditBalance() {
+                const amount = parseRupiah(transactionAmountInput.value);
+                const type = transactionTypeSelect.value;
+                const masterDataId = transactionMasterDataSelect.value;
 
-            // Save transaction to Firebase
-            function saveTransaction() {
-                const type = transType.value;
-                const name = transName.value.trim();
-                const amount = parseFloat(amountInput.value) || 0;
-                const transactionNumber = document.getElementById('trans-number').value;
-                const date = document.getElementById('trans-date').value;
-                const invoice = document.getElementById('invoice-number').value;
-                const method = document.getElementById('payment-method').value;
-                const paymentDetail = document.getElementById('payment-detail-input').value;
-                const desc = description.value.trim();
-                
-                if (!type || !name || amount <= 0) {
-                    alert('Harap lengkapi semua field yang diperlukan dan pastikan nominal lebih dari 0!');
+                if (type === 'debet') {
+                    transactionDebetInput.value = formatRupiah(amount);
+                    transactionKreditInput.value = formatRupiah(0);
+                } else if (type === 'kredit') {
+                    transactionDebetInput.value = formatRupiah(0);
+                    transactionKreditInput.value = formatRupiah(amount);
+                } else {
+                    transactionDebetInput.value = formatRupiah(0);
+                    transactionKreditInput.value = formatRupiah(0);
+                }
+
+                if (masterDataId && masterData[masterDataId]) {
+                    const currentBalance = masterData[masterDataId].balance || 0;
+                    let newBalance = currentBalance;
+
+                    if (type === 'debet') {
+                        newBalance = currentBalance + amount;
+                    } else if (type === 'kredit') {
+                        newBalance = currentBalance - amount;
+                    }
+                    transactionBalanceInput.value = formatRupiah(newBalance);
+                } else {
+                    transactionBalanceInput.value = formatRupiah(0);
+                }
+            }
+
+            saveTransactionBtn.addEventListener('click', () => {
+                const amount = parseRupiah(transactionAmountInput.value);
+                const description = transactionDescriptionInput.value.trim();
+                const type = transactionTypeSelect.value;
+                const masterDataId = transactionMasterDataSelect.value;
+                const masterDataItem = masterDataId ? masterData[masterDataId] : null;
+
+                if (amount <= 0 || !description || !type || !masterDataId) {
+                    alert('Mohon lengkapi semua data transaksi (Jumlah, Keterangan, Tipe, Nama/Kategori).');
                     return;
                 }
-                
-                const debit = type === 'customer' ? amount : 0;
-                const credit = type === 'supplier' ? amount : 0;
 
-                if (currentBalances[name] === undefined) {
-                    currentBalances[name] = 0;
-                }
-                let newBalanceForName = currentBalances[name];
-                
-                if (type === 'supplier') { 
-                    newBalanceForName -= amount; 
-                } else if (type === 'customer') { 
-                    newBalanceForName += amount; 
-                }
-
-                const transaction = {
-                    transactionNumber,
-                    date,
-                    type,
-                    name,
-                    invoiceNumber: invoice,
-                    paymentMethod: method,
-                    paymentDetail: method !== 'cash' ? paymentDetail : '',
-                    amount: amount, 
-                    debit: debit,
-                    credit: credit,
-                    description: desc,
-                    balanceAfterTransaction: newBalanceForName, 
+                const transactionData = {
+                    amount: amount,
+                    description: description,
+                    type: type,
+                    masterDataId: masterDataId,
+                    masterDataName: masterDataItem ? masterDataItem.name : 'N/A',
+                    masterDataType: masterDataItem ? masterDataItem.type : 'N/A',
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
-                
-                const newTransactionRef = database.ref('transactions').push();
-                newTransactionRef.set(transaction)
+
+                database.ref('transactions').push(transactionData)
                     .then(() => {
-                        showSuccessPopup(transaction);
-                        resetForm();
-                        currentBalances[name] = newBalanceForName;
-                        updateDashboard(); 
-                        loadTransactionsForReport(); 
+                        alert('Transaksi berhasil disimpan!');
+                        updateMasterDataBalance(masterDataId, amount, type);
+                        resetTransactionForm();
                     })
-                    .catch((error) => {
-                        alert('Error menyimpan transaksi: ' + error.message);
-                        console.error('Firebase save error:', error);
+                    .catch(error => {
+                        console.error("Error saving transaction:", error);
+                        alert('Gagal menyimpan transaksi: ' + error.message);
                     });
-            }
-            
-            let allTransactions = [];
+            });
 
-            function loadTransactionsForReport() {
-                const transactionsRef = database.ref('transactions');
-                transactionsRef.orderByChild('timestamp').once('value')
-                    .then((snapshot) => {
-                        allTransactions = [];
-                        currentBalances = {}; 
-                        
-                        const tempTransactions = [];
-                        snapshot.forEach(childSnapshot => {
-                            tempTransactions.push(childSnapshot.val());
-                        });
-
-                        tempTransactions.sort((a, b) => a.timestamp - b.timestamp);
-
-                        tempTransactions.forEach(trans => {
-                            allTransactions.push(trans); 
-
-                            if (currentBalances[trans.name] === undefined) {
-                                currentBalances[trans.name] = 0;
-                            }
-                            const amountValue = parseFloat(trans.amount) || 0; 
-
-                            if (trans.type === 'supplier') {
-                                currentBalances[trans.name] -= amountValue; 
-                            } else if (trans.type === 'customer') {
-                                currentBalances[trans.name] += amountValue; 
-                            }
-                            trans.balanceAfterTransaction = currentBalances[trans.name];
-                        });
-                        
-                        filterAndPopulateTables(allTransactions);
-                        populateBalanceReportTable();
-                    })
-                    .catch((error) => {
-                        console.error('Error loading transactions for report:', error);
-                    });
-            }
-            
-            function filterAndPopulateTables(transactions) {
-                const filterType = document.getElementById('filter-type').value;
-                const filterMethod = document.getElementById('filter-method').value;
-                const filterName = document.getElementById('filter-name').value.toLowerCase();
-                const filterStartDate = document.getElementById('filter-start-date').value;
-                const filterEndDate = document.getElementById('filter-end-date').value;
-
-                const filteredTransactions = transactions.filter(trans => {
-                    const transDate = new Date(trans.date);
-                    const startDate = filterStartDate ? new Date(filterStartDate) : null;
-                    const endDate = filterEndDate ? new Date(filterEndDate) : null;
-
-                    const matchesType = filterType === 'all' || trans.type === filterType;
-                    const matchesMethod = filterMethod === 'all' || trans.paymentMethod === filterMethod;
-                    const matchesName = filterName === '' || (trans.name && trans.name.toLowerCase().includes(filterName));
-                    const matchesDate = (!startDate || transDate >= startDate) && (!endDate || transDate <= endDate);
-
-                    return matchesType && matchesMethod && matchesName && matchesDate;
-                });
-                populateReportTable(filteredTransactions);
-                updateDashboardSummaries(allTransactions); 
-            }
-
-            function populateReportTable(transactions) {
-                const tableBody = document.querySelector('#report-table tbody');
-                tableBody.innerHTML = '';
-                
-                if (transactions.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">Tidak ada data transaksi.</td></tr>';
-                    return;
-                }
-
-                transactions.forEach(trans => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${trans.transactionNumber || '-'}</td>
-                        <td>${trans.date || '-'}</td>
-                        <td>${trans.name || '-'}</td>
-                        <td>${trans.type === 'supplier' ? 'Supplier' : 'Customer' || '-'}</td>
-                        <td>${trans.invoiceNumber || '-'}</td>
-                        <td>${trans.paymentMethod || '-'}</td>
-                        <td>${trans.paymentDetail || '-'}</td>
-                        <td class="debit">${trans.debit > 0 ? formatRupiah(trans.debit) : '-'}</td>
-                        <td class="credit">${trans.credit > 0 ? formatRupiah(trans.credit) : '-'}</td>
-                        <td>${trans.description || '-'}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
-
-            function populateBalanceReportTable() {
-                const tableBody = document.querySelector('#balance-report-table tbody');
-                tableBody.innerHTML = '';
-
-                const balanceSummary = {}; 
-
-                for (const name in currentBalances) {
-                    let totalDebit = 0;
-                    let totalCredit = 0;
-                    let type = ''; 
-                    allTransactions.filter(t => t.name === name).forEach(t => {
-                        totalDebit += (parseFloat(t.debit) || 0);
-                        totalCredit += (parseFloat(t.credit) || 0);
-                        if (!type) type = t.type; 
-                    });
-
-                    balanceSummary[name] = {
-                        type: type,
-                        totalDebit: totalDebit,
-                        totalCredit: totalCredit,
-                        finalBalance: currentBalances[name] 
-                    };
-                }
-
-                const sortedNames = Object.keys(balanceSummary).sort(); 
-
-                if (sortedNames.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Tidak ada data saldo per customer/supplier.</td></tr>';
-                    return;
-                }
-
-                sortedNames.forEach(name => {
-                    const data = balanceSummary[name];
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${name}</td>
-                        <td>${data.type === 'supplier' ? 'Supplier' : 'Customer'}</td>
-                        <td>${formatRupiah(data.totalDebit)}</td>
-                        <td>${formatRupiah(data.totalCredit)}</td>
-                        <td>${formatRupiah(data.finalBalance)}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
-            
-            function updateDashboardSummaries(transactions) {
-                let totalSuppliers = new Set();
-                let totalCustomers = new Set();
-                let totalDebt = 0; 
-                let totalReceivable = 0; 
-
-                const tempBalances = {}; 
-                transactions.forEach(trans => {
-                    if (trans.name) { 
-                        if (tempBalances[trans.name] === undefined) {
-                            tempBalances[trans.name] = 0;
-                        }
-                        const amountValue = parseFloat(trans.amount) || 0;
-                        if (trans.type === 'supplier') {
-                            tempBalances[trans.name] -= amountValue; 
-                            totalSuppliers.add(trans.name);
-                        } else if (trans.type === 'customer') {
-                            tempBalances[trans.name] += amountValue; 
-                            totalCustomers.add(trans.name);
+            function updateMasterDataBalance(masterDataId, amount, type) {
+                const masterRef = database.ref('masterData/' + masterDataId);
+                masterRef.transaction(currentData => {
+                    if (currentData) {
+                        let currentBalance = currentData.balance || 0;
+                        if (type === 'debet') {
+                            currentData.balance = currentBalance + amount;
+                        } else if (type === 'kredit') {
+                            currentData.balance = currentBalance - amount;
                         }
                     }
-                });
-
-                for (const name in tempBalances) {
-                    if (tempBalances[name] < 0) { 
-                        totalDebt += Math.abs(tempBalances[name]);
-                    } else if (tempBalances[name] > 0) { 
-                        totalReceivable += tempBalances[name];
+                    return currentData;
+                }, (error, committed, snapshot) => {
+                    if (error) {
+                        console.error("Transaction failed abnormally!", error);
+                    } else if (!committed) {
+                        console.log("Transaction aborted (data not committed).");
+                    } else {
+                        console.log("Master data balance updated successfully!");
                     }
-                }
-
-                document.getElementById('supplier-count').textContent = totalSuppliers.size;
-                document.getElementById('customer-count').textContent = totalCustomers.size;
-                document.getElementById('total-debt').textContent = formatRupiah(totalDebt);
-                document.getElementById('total-receivable').textContent = formatRupiah(totalReceivable);
-
-                const recentTransactionsTableBody = document.querySelector('#recent-transactions tbody');
-                recentTransactionsTableBody.innerHTML = '';
-                const sortedTransactions = transactions.sort((a, b) => b.timestamp - a.timestamp); 
-                const lastFiveTransactions = sortedTransactions.slice(0, 5);
-
-                if (lastFiveTransactions.length === 0) {
-                    recentTransactionsTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Tidak ada transaksi terbaru.</td></tr>';
-                    return;
-                }
-
-                lastFiveTransactions.forEach(trans => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${trans.transactionNumber || '-'}</td>
-                        <td>${trans.date || '-'}</td>
-                        <td>${trans.name || '-'}</td>
-                        <td>${trans.type === 'supplier' ? 'Supplier' : 'Customer' || '-'}</td>
-                        <td>${trans.invoiceNumber || '-'}</td>
-                        <td class="debit">${trans.debit > 0 ? formatRupiah(trans.debit) : '-'}</td>
-                        <td class="credit">${trans.credit > 0 ? formatRupiah(trans.credit) : '-'}</td>
-                        <td>${trans.balanceAfterTransaction !== undefined ? formatRupiah(trans.balanceAfterTransaction) : '-'}</td>
-                    `;
-                    recentTransactionsTableBody.appendChild(row);
                 });
             }
 
-            function updateDashboard() {
-                const transactionsRef = database.ref('transactions');
-                transactionsRef.orderByChild('timestamp').once('value')
-                    .then((snapshot) => {
-                        const transactions = [];
-                        currentBalances = {}; 
-                        snapshot.forEach(childSnapshot => {
-                            const trans = childSnapshot.val();
-                            transactions.push(trans);
+            resetFormBtn.addEventListener('click', resetTransactionForm);
 
-                            if (currentBalances[trans.name] === undefined) {
-                                currentBalances[trans.name] = 0;
-                            }
-                            const amountValue = parseFloat(trans.amount) || 0;
-                            if (trans.type === 'supplier') {
-                                currentBalances[trans.name] -= amountValue; 
-                            } else if (trans.type === 'customer') {
-                                currentBalances[trans.name] += amountValue; 
-                            }
-                        });
-                        allTransactions = transactions; 
-                        updateDashboardSummaries(transactions); 
-                    })
-                    .catch((error) => {
-                        console.error('Error loading transactions for dashboard:', error);
-                        document.getElementById('supplier-count').textContent = 'N/A';
-                        document.getElementById('customer-count').textContent = 'N/A';
-                        document.getElementById('total-debt').textContent = 'Rp 0';
-                        document.getElementById('total-receivable').textContent = 'Rp 0';
-                        document.querySelector('#recent-transactions tbody').innerHTML = '<tr><td colspan="8">Gagal memuat transaksi terbaru.</td></tr>';
-                    });
-            }
-            
-            // =====================
-            // Chart.js Configuration (Sederhana)
-            // =====================
-            let myChart; 
-
-            function renderChart() {
-                const ctx = document.getElementById('myChart');
-
-                if (myChart) {
-                    myChart.destroy(); 
-                }
-
-                const data = {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'], // Ganti dengan bulan dinamis
-                    datasets: [
-                        {
-                            label: 'Pendapatan',
-                            data: [12000000, 19000000, 30000000, 50000000, 20000000, 30000000, 45000000], // Ganti dengan data nyata
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1,
-                            fill: false
-                        },
-                        {
-                            label: 'Pengeluaran',
-                            data: [8000000, 10000000, 15000000, 25000000, 12000000, 18000000, 22000000], // Ganti dengan data nyata
-                            borderColor: 'rgb(255, 99, 132)',
-                            tension: 0.1,
-                            fill: false
-                        }
-                    ]
-                };
-
-                const config = {
-                    type: 'line',
-                    data: data,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                            },
-                            title: {
-                                display: true,
-                                text: 'Aliran Kas Bulanan'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value, index, values) {
-                                        return formatRupiah(value);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-                myChart = new Chart(ctx, config);
+            function resetTransactionForm() {
+                transactionAmountInput.value = '';
+                transactionDescriptionInput.value = '';
+                transactionTypeSelect.value = '';
+                transactionMasterDataSelect.value = '';
+                transactionDebetInput.value = formatRupiah(0);
+                transactionKreditInput.value = formatRupiah(0);
+                transactionBalanceInput.value = formatRupiah(0);
             }
 
-            // =====================
-            // Bank Account Management
-            // =====================
-            const addEditBankFormSection = document.getElementById('add-edit-bank-form-section');
-            const showAddBankFormBtn = document.getElementById('show-add-bank-form-btn');
-            const cancelBankFormBtn = document.getElementById('cancel-bank-form-btn');
-            const saveBankAccountBtn = document.getElementById('save-bank-account-btn');
-            const bankNameInput = document.getElementById('bank-name');
-            const accountNumberInput = document.getElementById('account-number');
-            const accountTypeInput = document.getElementById('account-type');
-            const initialBalanceInput = document.getElementById('initial-balance');
-            const bankAccountIdInput = document.getElementById('bank-account-id');
-            const bankAccountsTableBody = document.querySelector('#bank-accounts-table tbody');
-
-            showAddBankFormBtn.addEventListener('click', () => {
-                addEditBankFormSection.classList.add('active');
-                resetBankForm();
-            });
-
-            cancelBankFormBtn.addEventListener('click', () => {
-                addEditBankFormSection.classList.remove('active');
-                resetBankForm();
-            });
-
-            function resetBankForm() {
-                bankAccountIdInput.value = '';
-                bankNameInput.value = '';
-                accountNumberInput.value = '';
-                accountTypeInput.value = 'Tabungan';
-                initialBalanceInput.value = '';
-            }
-
-            saveBankAccountBtn.addEventListener('click', () => {
-                const id = bankAccountIdInput.value;
-                const bankName = bankNameInput.value.trim();
-                const accountNumber = accountNumberInput.value.trim();
-                const accountType = accountTypeInput.value;
-                const balance = parseFloat(initialBalanceInput.value) || 0; // Menggunakan balance, bukan initialBalance
-
-                if (!bankName || !accountNumber) {
-                    alert('Nama Bank dan Nomor Rekening harus diisi!');
-                    return;
-                }
-
-                const bankAccountData = {
-                    bankName,
-                    accountNumber,
-                    accountType,
-                    balance,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                };
-
-                if (id) {
-                    database.ref(`bankAccounts/${id}`).set(bankAccountData)
-                        .then(() => {
-                            alert('Rekening bank berhasil diperbarui!');
-                            loadBankAccounts();
-                            addEditBankFormSection.classList.remove('active');
-                        })
-                        .catch(error => {
-                            console.error('Error updating bank account:', error);
-                            alert('Gagal memperbarui rekening bank: ' + error.message);
-                        });
-                } else {
-                    database.ref('bankAccounts').push(bankAccountData)
-                        .then(() => {
-                            alert('Rekening bank berhasil ditambahkan!');
-                            loadBankAccounts();
-                            addEditBankFormSection.classList.remove('active');
-                        })
-                        .catch(error => {
-                            console.error('Error adding bank account:', error);
-                            alert('Gagal menambahkan rekening bank: ' + error.message);
-                        });
-                }
-            });
-
-            function loadBankAccounts() {
-                database.ref('bankAccounts').on('value', (snapshot) => {
-                    bankAccountsTableBody.innerHTML = '';
-                    if (!snapshot.exists()) {
-                        bankAccountsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Belum ada rekening bank.</td></tr>';
-                        return;
-                    }
-                    snapshot.forEach(childSnapshot => {
-                        const key = childSnapshot.key;
-                        const account = childSnapshot.val();
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${account.bankName}</td>
-                            <td>${account.accountNumber}</td>
-                            <td>${account.accountType}</td>
-                            <td>${formatRupiah(account.balance)}</td>
-                            <td class="action-buttons">
-                                <button class="action-btn" onclick="editBankAccount('${key}')"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn" onclick="deleteBankAccount('${key}')"><i class="fas fa-trash"></i></button>
-                            </td>
-                        `;
-                        bankAccountsTableBody.appendChild(row);
-                    });
-                }, error => {
-                    console.error("Error loading bank accounts:", error);
-                    bankAccountsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Gagal memuat rekening bank.</td></tr>';
-                });
-            }
-
-            window.editBankAccount = function(key) {
-                database.ref(`bankAccounts/${key}`).once('value', snapshot => {
-                    const account = snapshot.val();
-                    bankAccountIdInput.value = key;
-                    bankNameInput.value = account.bankName;
-                    accountNumberInput.value = account.accountNumber;
-                    accountTypeInput.value = account.accountType;
-                    initialBalanceInput.value = account.balance;
-                    addEditBankFormSection.classList.add('active');
-                }).catch(error => {
-                    console.error("Error fetching bank account for edit:", error);
-                    alert("Gagal memuat data rekening untuk diedit.");
-                });
-            };
-
-            window.deleteBankAccount = function(key) {
-                if (confirm('Anda yakin ingin menghapus rekening ini?')) {
-                    database.ref(`bankAccounts/${key}`).remove()
-                        .then(() => {
-                            alert('Rekening bank berhasil dihapus!');
-                        })
-                        .catch(error => {
-                            console.error('Error deleting bank account:', error);
-                            alert('Gagal menghapus rekening bank: ' + error.message);
-                        });
-                }
-            };
-
-            // =====================
-            // Master Data (Customer/Supplier) Management
-            // =====================
-            const showAddMasterDataFormBtn = document.getElementById('show-add-master-data-form-btn');
-            const addEditMasterDataFormSection = document.getElementById('add-edit-master-data-form-section');
-            const cancelMasterDataFormBtn = document.getElementById('cancel-master-data-form-btn');
-            const saveMasterDataBtn = document.getElementById('save-master-data-btn');
-            const masterDataTypeInput = document.getElementById('master-data-type');
-            const masterDataNameInput = document.getElementById('master-data-name');
-            const masterDataPhoneInput = document.getElementById('master-data-phone');
-            const masterDataAddressInput = document.getElementById('master-data-address');
-            const masterDataIdInput = document.getElementById('master-data-id');
-            const masterDataTableBody = document.querySelector('#master-data-table tbody');
-
-            showAddMasterDataFormBtn.addEventListener('click', () => {
-                addEditMasterDataFormSection.classList.add('active');
-                resetMasterDataForm();
-            });
-
-            cancelMasterDataFormBtn.addEventListener('click', () => {
-                addEditMasterDataFormSection.classList.remove('active');
-                resetMasterDataForm();
-            });
-
-            function resetMasterDataForm() {
-                masterDataIdInput.value = '';
-                masterDataTypeInput.value = 'customer';
-                masterDataNameInput.value = '';
-                masterDataPhoneInput.value = '';
-                masterDataAddressInput.value = '';
-            }
-
-            saveMasterDataBtn.addEventListener('click', () => {
-                const id = masterDataIdInput.value;
-                const type = masterDataTypeInput.value;
+            // --- Master Data Tab Logic ---
+            addMasterDataBtn.addEventListener('click', () => {
                 const name = masterDataNameInput.value.trim();
-                const phone = masterDataPhoneInput.value.trim();
-                const address = masterDataAddressInput.value.trim();
+                const type = masterDataTypeSelect.value;
 
                 if (!name || !type) {
-                    alert('Nama dan Tipe harus diisi!');
+                    alert('Nama dan Tipe Master Data tidak boleh kosong.');
                     return;
                 }
 
-                const masterData = {
-                    type,
-                    name,
-                    phone: phone || '-',
-                    address: address || '-',
+                database.ref('masterData').push({
+                    name: name,
+                    type: type,
+                    balance: 0, // Initial balance
                     timestamp: firebase.database.ServerValue.TIMESTAMP
-                };
-
-                if (id) {
-                    database.ref(`masterData/${id}`).set(masterData)
-                        .then(() => {
-                            alert('Data master berhasil diperbarui!');
-                            loadMasterData();
-                            addEditMasterDataFormSection.classList.remove('active');
-                        })
-                        .catch(error => {
-                            console.error('Error updating master data:', error);
-                            alert('Gagal memperbarui data master: ' + error.message);
-                        });
-                } else {
-                    database.ref('masterData').push(masterData)
-                        .then(() => {
-                            alert('Data master berhasil ditambahkan!');
-                            loadMasterData();
-                            addEditMasterDataFormSection.classList.remove('active');
-                        })
-                        .catch(error => {
-                            console.error('Error adding master data:', error);
-                            alert('Gagal menambahkan data master: ' + error.message);
-                        });
-                }
+                }).then(() => {
+                    alert('Master Data berhasil ditambahkan!');
+                    masterDataNameInput.value = '';
+                    masterDataTypeSelect.value = '';
+                    loadMasterData(); // Refresh table
+                    loadMasterDataForDropdown(); // Refresh dropdown
+                }).catch(error => {
+                    console.error("Error adding master data:", error);
+                    alert('Gagal menambahkan Master Data: ' + error.message);
+                });
             });
 
             function loadMasterData() {
-                database.ref('masterData').on('value', (snapshot) => {
+                database.ref('masterData').on('value', snapshot => {
                     masterDataTableBody.innerHTML = '';
-                    if (!snapshot.exists()) {
-                        masterDataTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Belum ada data customer/supplier.</td></tr>';
-                        return;
+                    const data = snapshot.val();
+                    if (data) {
+                        Object.keys(data).forEach(id => {
+                            const item = data[id];
+                            const row = masterDataTableBody.insertRow();
+                            row.insertCell(0).textContent = item.name;
+                            row.insertCell(1).textContent = item.type;
+                            row.insertCell(2).textContent = formatRupiah(item.balance || 0);
+
+                            const actionsCell = row.insertCell(3);
+                            actionsCell.classList.add('master-data-actions');
+
+                            const editBtn = document.createElement('button');
+                            editBtn.textContent = 'Edit';
+                            editBtn.classList.add('edit-btn');
+                            editBtn.addEventListener('click', () => editMasterData(id, item));
+
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.textContent = 'Hapus';
+                            deleteBtn.classList.add('delete-btn');
+                            deleteBtn.addEventListener('click', () => deleteMasterData(id));
+
+                            actionsCell.appendChild(editBtn);
+                            actionsCell.appendChild(deleteBtn);
+                        });
                     }
-                    snapshot.forEach(childSnapshot => {
-                        const key = childSnapshot.key;
-                        const data = childSnapshot.val();
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${data.type === 'customer' ? 'Customer' : 'Supplier'}</td>
-                            <td>${data.name}</td>
-                            <td>${data.phone}</td>
-                            <td>${data.address}</td>
-                            <td class="action-buttons">
-                                <button class="action-btn" onclick="editMasterData('${key}')"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn" onclick="deleteMasterData('${key}')"><i class="fas fa-trash"></i></button>
-                            </td>
-                        `;
-                        masterDataTableBody.appendChild(row);
-                    });
-                }, error => {
-                    console.error("Error loading master data:", error);
-                    masterDataTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Gagal memuat data master.</td></tr>';
                 });
             }
 
-            window.editMasterData = function(key) {
-                database.ref(`masterData/${key}`).once('value', snapshot => {
-                    const data = snapshot.val();
-                    masterDataIdInput.value = key;
-                    masterDataTypeInput.value = data.type;
-                    masterDataNameInput.value = data.name;
-                    masterDataPhoneInput.value = data.phone;
-                    masterDataAddressInput.value = data.address;
-                    addEditMasterDataFormSection.classList.add('active');
-                }).catch(error => {
-                    console.error("Error fetching master data for edit:", error);
-                    alert("Gagal memuat data master untuk diedit.");
-                });
-            };
+            function editMasterData(id, item) {
+                const newName = prompt('Edit Nama:', item.name);
+                if (newName === null || newName.trim() === '') return;
 
-            window.deleteMasterData = function(key) {
-                if (confirm('Anda yakin ingin menghapus data ini?')) {
-                    database.ref(`masterData/${key}`).remove()
+                const newType = prompt('Edit Tipe (Supplier/Customer/Lain-lain):', item.type);
+                if (newType === null || newType.trim() === '') return;
+
+                database.ref('masterData/' + id).update({
+                    name: newName.trim(),
+                    type: newType.trim()
+                }).then(() => {
+                    alert('Master Data berhasil diperbarui!');
+                    loadMasterData();
+                    loadMasterDataForDropdown();
+                }).catch(error => {
+                    console.error("Error updating master data:", error);
+                    alert('Gagal memperbarui Master Data: ' + error.message);
+                });
+            }
+
+            function deleteMasterData(id) {
+                if (confirm('Apakah Anda yakin ingin menghapus Master Data ini?')) {
+                    database.ref('masterData/' + id).remove()
                         .then(() => {
-                            alert('Data master berhasil dihapus!');
+                            alert('Master Data berhasil dihapus!');
+                            loadMasterData();
+                            loadMasterDataForDropdown();
                         })
                         .catch(error => {
-                            console.error('Error deleting master data:', error);
-                            alert('Gagal menghapus data master: ' + error.message);
+                            console.error("Error deleting master data:", error);
+                            alert('Gagal menghapus Master Data: ' + error.message);
                         });
                 }
-            };
+            }
 
+            // --- Laporan Tab Logic ---
+            generateReportBtn.addEventListener('click', generateReport);
+            downloadPdfBtn.addEventListener('click', downloadPdfReport);
 
-            // =====================
-            // Settings Management (Store Info & Logo HTML Only)
-            // =====================
-            const storeNameInput = document.getElementById('store-name');
-            const storeAddressInput = document.getElementById('store-address');
-            const logoUrlInput = document.getElementById('logo-url-input'); // Changed from logo-upload
-            const currentLogoPreview = document.getElementById('current-logo-preview');
-            const noLogoText = document.getElementById('no-logo-text');
-            const saveSettingsBtn = document.getElementById('save-settings-btn');
-            const appLogoHeader = document.getElementById('app-logo');
-            const headerStoreName = document.getElementById('header-store-name');
-            const headerStoreAddress = document.getElementById('header-store-address');
+            function generateReport() {
+                const startDate = reportStartDateInput.value;
+                const endDate = reportEndDateInput.value;
 
-            logoUrlInput.addEventListener('input', () => { // Use 'input' event
-                const url = logoUrlInput.value.trim();
-                if (url) {
-                    currentLogoPreview.src = url;
-                    currentLogoPreview.style.display = 'block';
-                    noLogoText.style.display = 'none';
-                } else {
-                    currentLogoPreview.src = '';
-                    currentLogoPreview.style.display = 'none';
-                    noLogoText.style.display = 'block';
+                if (!startDate || !endDate) {
+                    alert('Mohon pilih rentang tanggal untuk laporan.');
+                    return;
                 }
-            });
 
-            saveSettingsBtn.addEventListener('click', async () => {
-                const storeName = storeNameInput.value.trim();
-                const storeAddress = storeAddressInput.value.trim();
-                const logoUrl = logoUrlInput.value.trim();
-                
-                const settings = {
-                    storeName: storeName,
-                    storeAddress: storeAddress,
-                    logoUrl: logoUrl // Simpan URL logo langsung
-                };
+                const startTimestamp = new Date(startDate).getTime();
+                const endTimestamp = new Date(endDate).setHours(23, 59, 59, 999); // End of day
 
-                database.ref('storeSettings').set(settings)
-                    .then(() => {
-                        alert('Pengaturan berhasil disimpan!');
-                        loadSettings(); // Reload settings to update header
+                database.ref('transactions')
+                    .orderByChild('timestamp')
+                    .startAt(startTimestamp)
+                    .endAt(endTimestamp)
+                    .once('value', snapshot => {
+                        reportTableBody.innerHTML = '';
+                        let totalDebet = 0;
+                        let totalKredit = 0;
+
+                        const transactions = [];
+                        snapshot.forEach(childSnapshot => {
+                            transactions.push({ id: childSnapshot.key, ...childSnapshot.val() });
+                        });
+
+                        // Sort transactions by timestamp ascending
+                        transactions.sort((a, b) => a.timestamp - b.timestamp);
+
+                        transactions.forEach(transaction => {
+                            const row = reportTableBody.insertRow();
+                            const date = new Date(transaction.timestamp).toLocaleDateString('id-ID');
+                            row.insertCell(0).textContent = date;
+                            row.insertCell(1).textContent = transaction.description;
+                            row.insertCell(2).textContent = transaction.masterDataName;
+                            row.insertCell(3).textContent = transaction.masterDataType;
+
+                            if (transaction.type === 'debet') {
+                                row.insertCell(4).textContent = formatRupiah(transaction.amount);
+                                row.insertCell(5).textContent = formatRupiah(0);
+                                totalDebet += transaction.amount;
+                            } else {
+                                row.insertCell(4).textContent = formatRupiah(0);
+                                row.insertCell(5).textContent = formatRupiah(transaction.amount);
+                                totalKredit += transaction.amount;
+                            }
+                        });
+
+                        totalDebetReport.textContent = formatRupiah(totalDebet);
+                        totalKreditReport.textContent = formatRupiah(totalKredit);
+                        finalBalanceReport.textContent = formatRupiah(totalDebet - totalKredit);
                     })
                     .catch(error => {
-                        console.error('Error saving settings:', error);
-                        alert('Gagal menyimpan pengaturan: ' + error.message);
+                        console.error("Error generating report:", error);
+                        alert('Gagal membuat laporan: ' + error.message);
                     });
+            }
+
+            // Fungsi untuk mengunduh laporan sebagai PDF (membutuhkan jsPDF)
+            function downloadPdfReport() {
+                // Memuat jsPDF secara dinamis
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                script.onload = () => {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+
+                    doc.setFontSize(18);
+                    doc.text("Laporan Transaksi", 14, 22);
+                    doc.setFontSize(11);
+                    doc.text(`Periode: ${reportStartDateInput.value} s/d ${reportEndDateInput.value}`, 14, 30);
+
+                    const tableData = [];
+                    const headers = ['Tanggal', 'Keterangan', 'Nama/Kategori', 'Tipe', 'Debet', 'Kredit'];
+
+                    // Ambil data dari tabel yang sudah ditampilkan
+                    const rows = reportTableBody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const rowData = [];
+                        row.querySelectorAll('td').forEach(cell => {
+                            rowData.push(cell.textContent);
+                        });
+                        tableData.push(rowData);
+                    });
+
+                    doc.autoTable({
+                        startY: 40,
+                        head: [headers],
+                        body: tableData,
+                        theme: 'grid',
+                        styles: { fontSize: 8, cellPadding: 2 },
+                        headStyles: { fillColor: [242, 242, 242], textColor: [0,0,0] },
+                        margin: { top: 35 }
+                    });
+
+                    const finalY = doc.autoTable.previous.finalY;
+                    doc.setFontSize(10);
+                    doc.text(`Total Debet: ${totalDebetReport.textContent}`, 14, finalY + 10);
+                    doc.text(`Total Kredit: ${totalKreditReport.textContent}`, 14, finalY + 16);
+                    doc.text(`Saldo Akhir: ${finalBalanceReport.textContent}`, 14, finalY + 22);
+
+                    doc.save(`Laporan_Transaksi_${reportStartDateInput.value}_${reportEndDateInput.value}.pdf`);
+                };
+                document.head.appendChild(script);
+            }
+
+            // --- Saldo Bank Tab Logic ---
+            addBankAccountBtn.addEventListener('click', () => {
+                const name = bankAccountNameInput.value.trim();
+                const balance = parseRupiah(bankAccountBalanceInput.value);
+
+                if (!name || isNaN(balance)) {
+                    alert('Nama Bank dan Saldo Awal tidak boleh kosong atau tidak valid.');
+                    return;
+                }
+
+                database.ref('bankAccounts').push({
+                    name: name,
+                    balance: balance,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    alert('Akun Bank berhasil ditambahkan!');
+                    bankAccountNameInput.value = '';
+                    bankAccountBalanceInput.value = '';
+                    loadBankAccounts();
+                }).catch(error => {
+                    console.error("Error adding bank account:", error);
+                    alert('Gagal menambahkan Akun Bank: ' + error.message);
+                });
             });
 
-            function loadSettings() {
-                database.ref('storeSettings').once('value', (snapshot) => {
-                    const settings = snapshot.val();
-                    if (settings) {
-                        storeNameInput.value = settings.storeName || '';
-                        storeAddressInput.value = settings.storeAddress || '';
-                        headerStoreName.textContent = settings.storeName || 'Roda Toko';
-                        headerStoreAddress.textContent = settings.storeAddress || 'Jl. Sudirman No. 123, Jakarta Pusat';
-                        
-                        logoUrlInput.value = settings.logoUrl || ''; // Set input URL
-                        if (settings.logoUrl) {
-                            currentLogoPreview.src = settings.logoUrl;
-                            currentLogoPreview.style.display = 'block';
-                            noLogoText.style.display = 'none';
-                            appLogoHeader.innerHTML = `<img src="${settings.logoUrl}" alt="App Logo">`;
-                        } else {
-                            currentLogoPreview.src = '';
-                            currentLogoPreview.style.display = 'none';
-                            noLogoText.style.display = 'block';
-                            appLogoHeader.innerHTML = 'RT'; // Fallback to text logo
-                        }
-                    } else {
-                         // Default values if no settings found
-                        storeNameInput.value = 'Roda Toko';
-                        storeAddressInput.value = 'Jl. Sudirman No. 123, Jakarta Pusat';
-                        headerStoreName.textContent = 'Roda Toko';
-                        headerStoreAddress.textContent = 'Jl. Sudirman No. 123, Jakarta Pusat';
-                        logoUrlInput.value = '';
-                        currentLogoPreview.src = '';
-                        currentLogoPreview.style.display = 'none';
-                        noLogoText.style.display = 'block';
-                        appLogoHeader.innerHTML = 'RT';
+            function loadBankAccounts() {
+                database.ref('bankAccounts').on('value', snapshot => {
+                    bankAccountsList.innerHTML = '';
+                    const data = snapshot.val();
+                    if (data) {
+                        bankAccounts = data; // Cache bank data
+                        Object.keys(data).forEach(id => {
+                            const account = data[id];
+                            const listItem = document.createElement('li');
+                            listItem.innerHTML = `
+                                <span>${account.name}</span>
+                                <span>${formatRupiah(account.balance || 0)}</span>
+                                <button class="delete-bank-btn" data-id="${id}"><i class="fas fa-trash-alt"></i></button>
+                            `;
+                            bankAccountsList.appendChild(listItem);
+                        });
+
+                        // Add event listeners for delete buttons
+                        document.querySelectorAll('.delete-bank-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const idToDelete = e.currentTarget.dataset.id;
+                                if (confirm('Apakah Anda yakin ingin menghapus akun bank ini?')) {
+                                    database.ref('bankAccounts/' + idToDelete).remove()
+                                        .then(() => {
+                                            alert('Akun Bank berhasil dihapus!');
+                                            loadBankAccounts();
+                                        })
+                                        .catch(error => {
+                                            console.error("Error deleting bank account:", error);
+                                            alert('Gagal menghapus Akun Bank: ' + error.message);
+                                        });
+                                }
+                            });
+                        });
                     }
-                }).catch(error => {
-                    console.error("Error loading settings:", error);
                 });
             }
 
-            // =====================
-            // Export PDF Report
-            // =====================
-            document.getElementById('print-report-pdf-btn').addEventListener('click', () => {
-                const reportTable = document.getElementById('report-table');
-                const balanceTable = document.getElementById('balance-report-table');
-                const doc = new window.jspdf.jsPDF('p', 'pt', 'a4'); // 'p' for portrait, 'pt' for points, 'a4' for A4 size
-
-                // Add main report table
-                html2canvas(reportTable, { scale: 2 }).then(canvas => { // Scale for better quality
-                    const imgData = canvas.toDataURL('image/png');
-                    const imgWidth = 550; // A4 size in points - padding
-                    const pageHeight = doc.internal.pageSize.height;
-                    const imgHeight = canvas.height * imgWidth / canvas.width;
-                    let heightLeft = imgHeight;
-                    let position = 40; // Initial Y position
-
-                    doc.setFontSize(18);
-                    doc.text("Laporan Transaksi Lengkap", 40, 30); // Title
-                    doc.setFontSize(10);
-                    doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 40, 50);
-
-                    // Add filters if any
-                    const filterType = document.getElementById('filter-type').value;
-                    const filterMethod = document.getElementById('filter-method').value;
-                    const filterName = document.getElementById('filter-name').value;
-                    const filterStartDate = document.getElementById('filter-start-date').value;
-                    const filterEndDate = document.getElementById('filter-end-date').value;
-
-                    let filterText = "Filter: ";
-                    if (filterType !== 'all') filterText += `Jenis: ${filterType}, `;
-                    if (filterMethod !== 'all') filterText += `Metode: ${filterMethod}, `;
-                    if (filterName) filterText += `Nama: ${filterName}, `;
-                    if (filterStartDate) filterText += `Dari: ${new Date(filterStartDate).toLocaleDateString('id-ID')}, `;
-                    if (filterEndDate) filterText += `Sampai: ${new Date(filterEndDate).toLocaleDateString('id-ID')}, `;
-                    
-                    if (filterText !== "Filter: ") {
-                        doc.text(filterText.slice(0, -2), 40, 65); // Remove trailing comma and space
-                    }
-
-
-                    doc.addImage(imgData, 'PNG', 20, 80, imgWidth, imgHeight); // X, Y, W, H
-                    heightLeft -= (pageHeight - 80); // Adjust remaining height and start position for next page
-                    position += imgHeight + 20;
-
-                    while (heightLeft >= 0) {
-                        position = heightLeft - imgHeight + 40; // Adjust position for next page
-                        doc.addPage();
-                        doc.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-                        heightLeft -= pageHeight;
-                    }
-
-                    // Add balance report table on a new page
-                    doc.addPage();
-                    html2canvas(balanceTable, { scale: 2 }).then(canvasBalance => {
-                        const imgDataBalance = canvasBalance.toDataURL('image/png');
-                        const imgWidthBalance = 550;
-                        const imgHeightBalance = canvasBalance.height * imgWidthBalance / canvasBalance.width;
-
-                        doc.setFontSize(18);
-                        doc.text("Laporan Saldo per Customer/Supplier", 40, 30);
-                        doc.setFontSize(10);
-                        doc.addImage(imgDataBalance, 'PNG', 20, 80, imgWidthBalance, imgHeightBalance);
-                        doc.save('Laporan_Transaksi_Roda_Toko.pdf');
-                        alert('Laporan PDF berhasil dibuat!');
-                    });
+            // --- Logout Function ---
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    alert('Anda telah logout.');
+                    window.location.href = 'login.html';
                 }).catch(error => {
-                    console.error("Error generating PDF:", error);
-                    alert("Gagal membuat laporan PDF. Pastikan tabel tidak kosong atau terlalu lebar.");
+                    console.error("Error signing out:", error);
+                    alert('Gagal logout: ' + error.message);
                 });
             });
 
-
-            // Initial load on page load
-            generateTransactionNumber();
-            updateDashboard(); 
-            loadSettings(); 
-            loadMasterData(); // Load master data initially
-            loadBankAccounts(); // Load bank accounts initially
-        } // End of initializeApplication
-        
-        // Ensure current date is set on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            document.getElementById('trans-date').value = `${year}-${month}-${day}`;
-        });
+        } // End of initializeApp()
     </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo" id="app-logo">
+                        <i class="fas fa-store"></i> </div>
+                    <div class="store-info">
+                        <h1 id="header-store-name">Roda Toko</h1>
+                        <p id="header-store-address">Jl. Sudirman No. 123, Jakarta Pusat</p>
+                    </div>
+                </div>
+                <div class="date-display">
+                    <i class="fas fa-calendar"></i> <span id="current-date"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul class="nav-tabs">
+                <li data-tab="transaction-tab" class="active"><i class="fas fa-exchange-alt"></i> Transaksi</li>
+                <li data-tab="master-data-tab"><i class="fas fa-database"></i> Master Data</li>
+                <li data-tab="report-tab"><i class="fas fa-chart-line"></i> Laporan</li>
+                <li data-tab="bank-accounts-tab"><i class="fas fa-university"></i> Saldo Bank</li>
+                <li data-tab="settings-tab"><i class="fas fa-cog"></i> Pengaturan</li>
+            </ul>
+        </div>
+        <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </nav>
+
+    <main>
+        <div class="container">
+            <div id="transaction-tab" class="tab-pane active">
+                <h2>Catat Transaksi Baru</h2>
+                <div class="form-group">
+                    <label for="transaction-amount">Jumlah Transaksi (Rp)</label>
+                    <input type="text" id="transaction-amount" placeholder="Contoh: 500000" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label for="transaction-description">Keterangan</label>
+                    <textarea id="transaction-description" placeholder="Pembelian barang, Pembayaran gaji, dll."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-type">Tipe Transaksi</label>
+                    <select id="transaction-type">
+                        <option value="">Pilih Tipe</option>
+                        <option value="debet">Debet (Pemasukan)</option>
+                        <option value="kredit">Kredit (Pengeluaran)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-master-data">Nama/Kategori</label>
+                    <select id="transaction-master-data">
+                        <option value="">Pilih Nama/Kategori</option>
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-debet">Debet</label>
+                    <input type="text" id="transaction-debet" readonly value="Rp 0">
+                </div>
+                <div class="form-group">
+                    <label for="transaction-kredit">Kredit</label>
+                    <input type="text" id="transaction-kredit" readonly value="Rp 0">
+                </div>
+                <div class="form-group">
+                    <label for="transaction-balance">Saldo Per Nama</label>
+                    <input type="text" id="transaction-balance" readonly value="Rp 0">
+                </div>
+                <div class="btn-group">
+                    <button id="save-transaction-btn" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Transaksi</button>
+                    <button id="reset-form-btn" class="btn btn-danger"><i class="fas fa-redo"></i> Reset Form</button>
+                </div>
+            </div>
+
+            <div id="master-data-tab" class="tab-pane">
+                <h2>Manajemen Master Data</h2>
+                <div class="form-group">
+                    <label for="master-data-name">Nama/Kategori Baru</label>
+                    <input type="text" id="master-data-name" placeholder="Contoh: Supplier A, Pelanggan B, Listrik">
+                </div>
+                <div class="form-group">
+                    <label for="master-data-type">Tipe</label>
+                    <select id="master-data-type">
+                        <option value="">Pilih Tipe</option>
+                        <option value="Supplier">Supplier</option>
+                        <option value="Customer">Customer</option>
+                        <option value="Lain-lain">Lain-lain</option>
+                    </select>
+                </div>
+                <button id="add-master-data-btn" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Master Data</button>
+
+                <h3>Daftar Master Data</h3>
+                <table id="master-data-table">
+                    <thead>
+                        <tr>
+                            <th>Nama/Kategori</th>
+                            <th>Tipe</th>
+                            <th>Saldo</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="master-data-table-body">
+                        </tbody>
+                </table>
+            </div>
+
+            <div id="report-tab" class="tab-pane">
+                <h2>Laporan Transaksi</h2>
+                <div id="report-filters">
+                    <label for="report-start-date">Dari Tanggal:</label>
+                    <input type="date" id="report-start-date">
+                    <label for="report-end-date">Sampai Tanggal:</label>
+                    <input type="date" id="report-end-date">
+                    <button id="generate-report-btn" class="btn btn-primary"><i class="fas fa-search"></i> Buat Laporan</button>
+                    <button id="download-pdf-btn" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Unduh PDF</button>
+                </div>
+
+                <div id="report-table-container">
+                    <table id="report-table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Keterangan</th>
+                                <th>Nama/Kategori</th>
+                                <th>Tipe</th>
+                                <th>Debet</th>
+                                <th>Kredit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-table-body">
+                            </tbody>
+                    </table>
+                </div>
+
+                <div class="report-summary">
+                    <p>Total Debet: <span id="total-debet-report">Rp 0</span></p>
+                    <p>Total Kredit: <span id="total-kredit-report">Rp 0</span></p>
+                    <p>Saldo Akhir: <span id="final-balance-report">Rp 0</span></p>
+                </div>
+            </div>
+
+            <div id="bank-accounts-tab" class="tab-pane">
+                <h2>Manajemen Saldo Bank</h2>
+                <div id="bank-account-form" class="form-group">
+                    <input type="text" id="bank-account-name" placeholder="Nama Bank/Akun (Contoh: BCA, Kas Tunai)">
+                    <input type="text" id="bank-account-balance" placeholder="Saldo Awal (Rp)" inputmode="numeric">
+                    <button id="add-bank-account-btn" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Akun Bank</button>
+                </div>
+                <h3>Daftar Akun Bank</h3>
+                <ul id="bank-accounts-list">
+                    </ul>
+            </div>
+
+            <div id="settings-tab" class="tab-pane">
+                <h2>Pengaturan Aplikasi</h2>
+                <div id="settings-form">
+                    <div class="form-group">
+                        <label for="store-name-input">Nama Toko/Bisnis</label>
+                        <input type="text" id="store-name-input" placeholder="Contoh: Toko Maju Jaya">
+                    </div>
+                    <div class="form-group">
+                        <label for="store-address-input">Alamat Toko/Bisnis</label>
+                        <input type="text" id="store-address-input" placeholder="Contoh: Jl. Merdeka No. 45, Jakarta">
+                    </div>
+                    <div class="form-group">
+                        <label for="logo-url-input">URL Logo (HTML/Base64)</label>
+                        <input type="text" id="logo-url-input" placeholder="Contoh: https://example.com/logo.png atau data:image/png;base64,...">
+                    </div>
+                    <button id="save-settings-btn" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Pengaturan</button>
+                </div>
+            </div>
+        </div>
+    </main>
 </body>
 </html>
