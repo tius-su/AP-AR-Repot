@@ -125,7 +125,7 @@
             align-items: center;
             margin-bottom: 20px;
             min-height: 50px; 
-            overflow: hidden; /* Prevent overflow on nav container itself */
+            overflow: hidden; /* Prevent vertical overflow on nav container itself */
         }
 
         nav .container {
@@ -360,7 +360,6 @@
             background-color: #17a2b8;
             transform: translateY(-1px);
         }
-
 
         /* Table Styling */
         table {
@@ -658,6 +657,45 @@
                     <input type="date" id="transaction-date">
                 </div>
                 <div class="form-group">
+                    <label for="transaction-main-type">Tipe Transaksi Utama</label>
+                    <select id="transaction-main-type">
+                        <option value="">Pilih Tipe Utama</option>
+                        <option value="Penjualan">Penjualan</option>
+                        <option value="Pembelian">Pembelian</option>
+                        <option value="Pemasukan Lain">Pemasukan Lain-lain</option>
+                        <option value="Pengeluaran Lain">Pengeluaran Lain-lain</option>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label for="transaction-master-data">Pihak / Kategori</label>
+                    <select id="transaction-master-data">
+                        <option value="">Pilih Pihak / Kategori</option>
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-payment-method">Metode Pembayaran</label>
+                    <select id="transaction-payment-method">
+                        <option value="">Pilih Metode Pembayaran</option>
+                        <option value="Tunai">Tunai</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Piutang">Piutang (Kredit)</option>
+                        <option value="Hutang">Hutang (Kredit)</option>
+                        <option value="Cek">Cek</option>
+                        <option value="Giro">Giro</option>
+                    </select>
+                </div>
+                <div class="form-group" id="transaction-bank-account-group" style="display: none;">
+                    <label for="transaction-bank-account">Akun Kas/Bank</label>
+                    <select id="transaction-bank-account">
+                        <option value="">Pilih Akun Kas/Bank</option>
+                        </select>
+                </div>
+                 <div class="form-group" id="payment-method-details-group" style="display: none;">
+                    <label for="payment-method-details-input" id="payment-method-details-label">Nomor Cek/Giro/Bank Tujuan</label>
+                    <input type="text" id="payment-method-details-input" placeholder="Masukkan detail pembayaran">
+                </div>
+
+                <div class="form-group">
                     <label for="transaction-amount">Jumlah Transaksi (Rp)</label>
                     <input type="number" id="transaction-amount" placeholder="Contoh: 500000" step="any" inputmode="decimal">
                 </div>
@@ -665,23 +703,10 @@
                     <label for="transaction-description">Keterangan</label>
                     <textarea id="transaction-description" placeholder="Pembelian barang, Pembayaran gaji, dll."></textarea>
                 </div>
+               
                 <div class="form-group">
-                    <label for="transaction-master-data">Jenis Pihak / Kategori</label>
-                    <select id="transaction-master-data">
-                        <option value="">Pilih Jenis Pihak / Kategori</option>
-                        </select>
-                </div>
-                <div class="form-group">
-                    <label for="transaction-debet">Debet</label>
-                    <input type="text" id="transaction-debet" readonly value="Rp 0">
-                </div>
-                <div class="form-group">
-                    <label for="transaction-kredit">Kredit</label>
-                    <input type="text" id="transaction-kredit" readonly value="Rp 0">
-                </div>
-                <div class="form-group">
-                    <label for="transaction-balance">Saldo Per Nama (Prediksi)</label>
-                    <input type="text" id="transaction-balance" readonly value="Rp 0">
+                    <label for="transaction-predicted-balance">Saldo Pihak/Kategori (Prediksi)</label>
+                    <input type="text" id="transaction-predicted-balance" readonly value="Rp 0">
                 </div>
                 <div class="btn-group">
                     <button id="save-transaction-btn" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Transaksi</button>
@@ -809,8 +834,8 @@
                 <ul id="bank-accounts-list">
                     </ul>
 
-                <h3 style="margin-top: 40px;"><i class="fas fa-file-invoice-dollar"></i> Laporan Outstanding Saldo Bank / Mutasi Kas</h3>
-                <p>Laporan ini menyajikan mutasi kas/bank dari semua transaksi yang masuk.</p>
+                <h3 style="margin-top: 40px;"><i class="fas fa-file-invoice-dollar"></i> Laporan Mutasi Kas/Bank (Outstanding Saldo Bank)</h3>
+                <p>Laporan ini menyajikan mutasi kas/bank berdasarkan transaksi yang menggunakan akun bank.</p>
                  <div class="report-filters-group">
                     <div class="form-group">
                         <label for="bank-report-start-date">Dari Tanggal:</label>
@@ -836,21 +861,21 @@
                     <thead>
                         <tr>
                             <th>Tanggal</th>
-                            <th>Keterangan Transaksi</th>
-                            <th>Akun Bank</th>
-                            <th>Debit (Masuk)</th>
+                            <th>Keterangan</th>
+                            <th>Akun Kas/Bank</th>
+                            <th>Debet (Masuk)</th>
                             <th>Kredit (Keluar)</th>
-                            <th>Saldo Akhir Akun</th>
+                            <th>Saldo Akun</th>
                         </tr>
                     </thead>
                     <tbody id="bank-outstanding-report-body">
                         </tbody>
                 </table>
                 <div class="report-summary-box">
-                    <p>Total Pemasukan Kas/Bank: <span class="value" id="total-bank-debet">Rp 0</span></p>
-                    <p>Total Pengeluaran Kas/Bank: <span class="value" id="total-bank-kredit">Rp 0</span></p>
-                    <p>Saldo Akhir Kas/Bank (Periode): <span class="value" id="final-bank-balance-period">Rp 0</span></p>
-                    <p>Total Saldo Semua Akun Bank: <span class="value" id="total-current-bank-balance">Rp 0</span></p>
+                    <p>Total Pemasukan Kas/Bank (Periode): <span class="value" id="total-bank-debet-period">Rp 0</span></p>
+                    <p>Total Pengeluaran Kas/Bank (Periode): <span class="value" id="total-bank-kredit-period">Rp 0</span></p>
+                    <p>Net Mutasi Kas/Bank (Periode): <span class="value" id="net-bank-mutation-period">Rp 0</span></p>
+                    <p>Total Saldo Semua Akun Bank Saat Ini: <span class="value" id="total-current-bank-balance">Rp 0</span></p>
                 </div>
             </div>
 
@@ -939,12 +964,17 @@
 
         // Transaction Tab Elements
         const transactionDateInput = document.getElementById('transaction-date');
+        const transactionMainTypeSelect = document.getElementById('transaction-main-type'); // New: Tipe Transaksi Utama
+        const transactionMasterDataSelect = document.getElementById('transaction-master-data'); 
+        const transactionPaymentMethodSelect = document.getElementById('transaction-payment-method'); // New: Metode Pembayaran
+        const transactionBankAccountGroup = document.getElementById('transaction-bank-account-group'); // Group for bank account select
+        const transactionBankAccountSelect = document.getElementById('transaction-bank-account'); // New: Akun Kas/Bank
+        const paymentMethodDetailsGroup = document.getElementById('payment-method-details-group'); // Group for method details
+        const paymentMethodDetailsLabel = document.getElementById('payment-method-details-label');
+        const paymentMethodDetailsInput = document.getElementById('payment-method-details-input');
         const transactionAmountInput = document.getElementById('transaction-amount');
         const transactionDescriptionInput = document.getElementById('transaction-description');
-        const transactionMasterDataSelect = document.getElementById('transaction-master-data');
-        const transactionDebetInput = document.getElementById('transaction-debet');
-        const transactionKreditInput = document.getElementById('transaction-kredit');
-        const transactionBalanceInput = document.getElementById('transaction-balance');
+        const transactionPredictedBalanceInput = document.getElementById('transaction-predicted-balance'); // Now for party balance
         const saveTransactionBtn = document.getElementById('save-transaction-btn');
         const resetFormBtn = document.getElementById('reset-form-btn');
 
@@ -957,17 +987,17 @@
         // Report Tab Elements
         const reportStartDateInput = document.getElementById('report-start-date');
         const reportEndDateInput = document.getElementById('report-end-date');
-        const filterMasterDataType = document.getElementById('filter-master-data-type'); // New filter
-        const filterByNameInput = document.getElementById('filter-by-name-input'); // New filter
+        const filterMasterDataType = document.getElementById('filter-master-data-type');
+        const filterByNameInput = document.getElementById('filter-by-name-input');
         const generateReportBtn = document.getElementById('generate-report-btn');
         const downloadPdfBtn = document.getElementById('download-pdf-btn');
-        const exportExcelBtn = document.getElementById('export-excel-btn'); // New: Excel button
-        const shareWhatsappBtn = document.getElementById('share-whatsapp-btn'); // New: WhatsApp button
+        const exportExcelBtn = document.getElementById('export-excel-btn');
+        const shareWhatsappBtn = document.getElementById('share-whatsapp-btn');
         const reportTableBody = document.getElementById('report-table-body');
         const totalDebetReport = document.getElementById('total-debet-report');
         const totalKreditReport = document.getElementById('total-kredit-report');
         const finalBalanceReport = document.getElementById('final-balance-report');
-        const masterDataBalanceReportBody = document.getElementById('master-data-balance-report-body'); // New: Laporan per Supplier/Customer
+        const masterDataBalanceReportBody = document.getElementById('master-data-balance-report-body');
 
         // Bank Accounts Tab Elements
         const bankAccountNameInput = document.getElementById('bank-account-name');
@@ -980,9 +1010,9 @@
         const generateBankReportBtn = document.getElementById('generate-bank-report-btn');
         const downloadBankPdfBtn = document.getElementById('download-bank-pdf-btn');
         const bankOutstandingReportBody = document.getElementById('bank-outstanding-report-body');
-        const totalBankDebet = document.getElementById('total-bank-debet');
-        const totalBankKredit = document.getElementById('total-bank-kredit');
-        const finalBankBalancePeriod = document.getElementById('final-bank-balance-period');
+        const totalBankDebetPeriod = document.getElementById('total-bank-debet-period');
+        const totalBankKreditPeriod = document.getElementById('total-bank-kredit-period');
+        const netBankMutationPeriod = document.getElementById('net-bank-mutation-period');
         const totalCurrentBankBalance = document.getElementById('total-current-bank-balance');
 
 
@@ -1047,6 +1077,7 @@
                 } else if (activeTabId === 'transaction-tab') {
                     resetTransactionForm(); // Reset form & set today's date
                     loadMasterDataForDropdown(); // Ensure dropdown is fresh
+                    loadBankAccountsForDropdown(); // Ensure bank account dropdown is fresh
                 } else if (activeTabId === 'master-data-tab') {
                     loadMasterData();
                 } else if (activeTabId === 'report-tab') {
@@ -1134,7 +1165,7 @@
         function loadMasterDataForDropdown() {
             database.ref('masterData').on('value', snapshot => {
                 masterData = snapshot.val() || {}; // Cache master data
-                transactionMasterDataSelect.innerHTML = '<option value="">Pilih Jenis Pihak / Kategori</option>';
+                transactionMasterDataSelect.innerHTML = '<option value="">Pilih Pihak / Kategori</option>';
                 for (let id in masterData) {
                     const item = masterData[id];
                     const option = document.createElement('option');
@@ -1151,107 +1182,176 @@
         loadMasterDataForDropdown();
 
 
-        // --- Transaksi Tab Logic ---
-        transactionAmountInput.addEventListener('input', calculateDebetKreditBalance); 
-        transactionMasterDataSelect.addEventListener('change', calculateDebetKreditBalance);
+        // Bank Accounts (for dropdown in transaction form)
+        function loadBankAccountsForDropdown() {
+            database.ref('bankAccounts').on('value', snapshot => {
+                allBankAccountsData = snapshot.val() || {}; // Cache all bank accounts
+                transactionBankAccountSelect.innerHTML = '<option value="">Pilih Akun Kas/Bank</option>';
+                for (let id in allBankAccountsData) {
+                    const account = allBankAccountsData[id];
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = account.name;
+                    transactionBankAccountSelect.appendChild(option);
+                }
+            }, error => {
+                console.error("Error loading bank accounts for dropdown:", error);
+            });
+        }
+        // Initial load for dropdown
+        loadBankAccountsForDropdown();
 
-        function calculateDebetKreditBalance() {
+
+        // --- Transaksi Tab Logic ---
+
+        // Show/hide bank account and payment details based on payment method
+        transactionPaymentMethodSelect.addEventListener('change', () => {
+            const method = transactionPaymentMethodSelect.value;
+            // Hide all first
+            transactionBankAccountGroup.style.display = 'none';
+            paymentMethodDetailsGroup.style.display = 'none';
+            paymentMethodDetailsInput.value = ''; // Clear input
+
+            if (method === 'Tunai' || method === 'Transfer') {
+                transactionBankAccountGroup.style.display = 'block';
+                paymentMethodDetailsLabel.textContent = 'Detail Transfer (Opsional)';
+                paymentMethodDetailsInput.placeholder = 'Contoh: No. Referensi Transfer';
+            }
+            if (method === 'Cek' || method === 'Giro') {
+                paymentMethodDetailsGroup.style.display = 'block';
+                paymentMethodDetailsLabel.textContent = method === 'Cek' ? 'Nomor Cek' : 'Nomor Giro';
+                paymentMethodDetailsInput.placeholder = `Masukkan ${method} number`;
+            }
+            calculatePredictedBalance(); // Recalculate balance display
+        });
+
+        // Event listeners for balance prediction
+        transactionAmountInput.addEventListener('input', calculatePredictedBalance);
+        transactionMasterDataSelect.addEventListener('change', calculatePredictedBalance);
+        transactionPaymentMethodSelect.addEventListener('change', calculatePredictedBalance); // Also update on payment method change
+
+        function calculatePredictedBalance() {
             const amount = parseFloat(transactionAmountInput.value) || 0;
             const masterDataId = transactionMasterDataSelect.value;
-            
-            // Reset fields
-            transactionDebetInput.value = formatRupiah(0);
-            transactionKreditInput.value = formatRupiah(0);
-            transactionBalanceInput.value = formatRupiah(0);
+            const paymentMethod = transactionPaymentMethodSelect.value;
 
-            if (masterDataId && masterData[masterDataId]) {
-                const masterItemType = masterData[masterDataId].type; // 'Supplier', 'Customer', 'Lain-lain'
-                const currentBalance = masterData[masterDataId].balance || 0;
-                let newBalance = currentBalance;
+            transactionPredictedBalanceInput.value = formatRupiah(0); // Reset
 
-                // Determine debet/kredit display based on master data type
-                if (masterItemType === 'Customer') {
-                    transactionDebetInput.value = formatRupiah(amount);
-                    newBalance = currentBalance + amount; // If customer, it's a receivable
-                } else if (masterItemType === 'Supplier') {
-                    transactionKreditInput.value = formatRupiah(amount);
-                    newBalance = currentBalance - amount; // If supplier, it's a payable
-                } else { // 'Lain-lain'
-                    // For 'Lain-lain', show 0 in debet/kredit fields, and current balance
-                    // Decision for actual transaction type (debet/kredit) will be made on save
-                    newBalance = currentBalance; // No change in balance prediction here for 'Lain-lain'
-                }
-                
-                transactionBalanceInput.value = formatRupiah(newBalance);
+            if (!masterDataId || !masterData[masterDataId]) {
+                return; // Can't predict without selected party
             }
+
+            const masterItemType = masterData[masterDataId].type;
+            const currentPartyBalance = masterData[masterDataId].balance || 0;
+            let predictedPartyBalance = currentPartyBalance;
+
+            // Only Piutang/Hutang methods affect party balance
+            if (paymentMethod === 'Piutang') { // Customer buying on credit
+                predictedPartyBalance = currentPartyBalance + amount;
+            } else if (paymentMethod === 'Hutang') { // Buying on credit from supplier
+                predictedPartyBalance = currentPartyBalance - amount;
+            }
+            // For other payment methods (Tunai, Transfer, Cek, Giro), the party's balance doesn't change from this transaction
+            // as it's a direct payment, not creating/reducing a receivable/payable.
+            // Balance displayed is the party's current actual balance.
+
+            transactionPredictedBalanceInput.value = formatRupiah(predictedPartyBalance);
         }
 
         saveTransactionBtn.addEventListener('click', () => {
-            const date = transactionDateInput.value; // Get date
+            const date = transactionDateInput.value;
+            const mainType = transactionMainTypeSelect.value; // Penjualan, Pembelian, Pemasukan Lain, Pengeluaran Lain
+            const masterDataId = transactionMasterDataSelect.value;
+            const paymentMethod = transactionPaymentMethodSelect.value;
+            const bankAccountId = transactionBankAccountSelect.value;
+            const paymentMethodDetails = paymentMethodDetailsInput.value.trim();
             const amount = parseFloat(transactionAmountInput.value) || 0;
             const description = transactionDescriptionInput.value.trim();
-            const masterDataId = transactionMasterDataSelect.value;
-            const masterDataItem = masterDataId ? masterData[masterDataId] : null;
 
-            if (!date || amount <= 0 || !description || !masterDataId || !masterDataItem) {
-                alert('Mohon lengkapi semua data transaksi (Tanggal, Jumlah, Keterangan, Jenis Pihak/Kategori).');
+            if (!date || !mainType || !masterDataId || !paymentMethod || amount <= 0 || !description) {
+                alert('Mohon lengkapi semua field wajib di formulir transaksi.');
+                return;
+            }
+            if ((paymentMethod === 'Tunai' || paymentMethod === 'Transfer') && !bankAccountId) {
+                alert('Mohon pilih Akun Kas/Bank untuk metode pembayaran Tunai atau Transfer.');
                 return;
             }
 
-            // Determine actual transaction type (debet/kredit) for storage based on master data type
-            let transactionTypeForDB = '';
+            const masterDataItem = masterData[masterDataId];
+
+            // Determine the actual Debet/Kredit amounts for the transaction record
             let debetAmount = 0;
             let kreditAmount = 0;
+            let isCashTransaction = false; // To determine if bank balance needs update
+            let affectsPartyBalance = false; // To determine if masterData balance needs update
 
-            if (masterDataItem.type === 'Customer') {
-                transactionTypeForDB = 'debet'; // Customer: Pemasukan (Piutang)
-                debetAmount = amount;
-                kreditAmount = 0;
-            } else if (masterDataItem.type === 'Supplier') {
-                transactionTypeForDB = 'kredit'; // Supplier: Pengeluaran (Hutang)
-                debetAmount = 0;
-                kreditAmount = amount;
-            } else { // 'Lain-lain' type
-                // For 'Lain-lain' category, we need to decide if it's debet or kredit.
-                // Ask user for 'Lain-lain' type
-                if (confirm('Untuk kategori "Lain-lain", apakah transaksi ini Pemasukan? (Jika tidak, akan dianggap Pengeluaran)')) {
-                    transactionTypeForDB = 'debet';
+            if (paymentMethod === 'Tunai' || paymentMethod === 'Transfer') {
+                isCashTransaction = true;
+                if (mainType === 'Penjualan' || mainType === 'Pemasukan Lain') {
                     debetAmount = amount;
-                    kreditAmount = 0;
-                } else {
-                    transactionTypeForDB = 'kredit';
-                    debetAmount = 0;
+                } else if (mainType === 'Pembelian' || mainType === 'Pengeluaran Lain') {
+                    kreditAmount = amount;
+                }
+            } else if (paymentMethod === 'Piutang') {
+                affectsPartyBalance = true;
+                debetAmount = amount; // Increases receivable
+            } else if (paymentMethod === 'Hutang') {
+                affectsPartyBalance = true;
+                kreditAmount = amount; // Increases payable
+            }
+            // Cek & Giro could be simplified as cash transactions for now, or handled as separate accrual types if needed.
+            // For simplicity, let's treat Cek/Giro similar to cash if they are direct payments.
+            else if (paymentMethod === 'Cek' || paymentMethod === 'Giro') {
+                isCashTransaction = true; // Assume Cek/Giro implies cash movement
+                 if (mainType === 'Penjualan' || mainType === 'Pemasukan Lain') {
+                    debetAmount = amount;
+                } else if (mainType === 'Pembelian' || mainType === 'Pengeluaran Lain') {
                     kreditAmount = amount;
                 }
             }
 
 
             const transactionData = {
-                date: date, // Store transaction date (YYYY-MM-DD)
-                amount: amount, // Store original amount as number
+                date: date,
+                mainType: mainType, // e.g., Penjualan, Pembelian
                 description: description,
-                type: transactionTypeForDB, // 'debet' or 'kredit' determined by master data type
-                debet: debetAmount, // Actual debet value
-                kredit: kreditAmount, // Actual kredit value
+                amount: amount,
+                paymentMethod: paymentMethod,
+                paymentMethodDetails: paymentMethodDetails,
+                bankAccountId: isCashTransaction ? bankAccountId : null, // Only link bank account if it's cash-based
+                debet: debetAmount, // Amount of debit impact (cash in OR receivable increase)
+                kredit: kreditAmount, // Amount of kredit impact (cash out OR payable increase)
                 masterDataId: masterDataId,
                 masterDataName: masterDataItem.name,
                 masterDataType: masterDataItem.type,
-                timestamp: firebase.database.ServerValue.TIMESTAMP // Firebase server timestamp
+                timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
             database.ref('transactions').push(transactionData)
                 .then(() => {
                     alert('Transaksi berhasil disimpan!');
-                    // Update balance for the affected master data item
-                    updateMasterDataBalance(masterDataId, amount, transactionTypeForDB);
+                    // Update balances based on the transaction type
+                    if (affectsPartyBalance) {
+                        // Update masterData balance for Piutang/Hutang
+                        updateMasterDataBalance(masterDataId, amount, paymentMethod === 'Piutang' ? 'debet' : 'kredit');
+                    }
+                    if (isCashTransaction) {
+                        // Update bank account balance for Tunai/Transfer/Cek/Giro
+                        updateBankAccountBalance(bankAccountId, amount, (debetAmount > 0) ? 'debet' : 'kredit');
+                    }
                     resetTransactionForm();
-                    // Optional: Reload dashboard/reports if they are visible
+
+                    // Reload relevant data in other tabs
                     if (document.getElementById('dashboard-tab').classList.contains('active')) {
                         loadDashboardData();
                     }
                     if (document.getElementById('report-tab').classList.contains('active')) {
                         generateReport();
                         loadMasterDataBalanceReport();
+                    }
+                     if (document.getElementById('bank-accounts-tab').classList.contains('active')) {
+                        loadBankAccounts(); // To update bank list (current balances)
+                        generateBankReport(); // To update bank report
                     }
                 })
                 .catch(error => {
@@ -1260,43 +1360,47 @@
                 });
         });
 
-        // Function to update master data's balance (using Firebase Transaction for safety)
-        function updateMasterDataBalance(masterDataId, amount, type) {
-            const masterRef = database.ref('masterData/' + masterDataId);
-            masterRef.transaction(currentData => {
+        // Function to update bank account's balance
+        function updateBankAccountBalance(bankAccountId, amount, type) {
+            const bankRef = database.ref('bankAccounts/' + bankAccountId);
+            bankRef.transaction(currentData => {
                 if (currentData) {
                     let currentBalance = currentData.balance || 0;
-                    if (type === 'debet') { // If it's income/receivable from this master data
+                    if (type === 'debet') { // Cash In
                         currentData.balance = currentBalance + amount;
-                    } else if (type === 'kredit') { // If it's expense/debt to this master data
+                    } else if (type === 'kredit') { // Cash Out
                         currentData.balance = currentBalance - amount;
                     }
                 }
-                return currentData; // Return the updated data (or null to abort)
+                return currentData;
             }, (error, committed, snapshot) => {
                 if (error) {
-                    console.error("Master data balance update transaction failed:", error);
+                    console.error("Bank account balance update transaction failed:", error);
                 } else if (!committed) {
-                    console.log("Master data balance update transaction aborted.");
+                    console.log("Bank account balance update transaction aborted.");
                 } else {
-                    console.log("Master data balance updated successfully for:", masterData[masterDataId]?.name);
+                    console.log("Bank account balance updated successfully for:", allBankAccountsData[bankAccountId]?.name);
                 }
             });
         }
+
 
         resetFormBtn.addEventListener('click', resetTransactionForm);
 
         function resetTransactionForm() {
             const today = new Date();
-            transactionDateInput.value = today.toISOString().split('T')[0]; // Reset date to today
+            transactionDateInput.value = today.toISOString().split('T')[0];
+            transactionMainTypeSelect.value = '';
+            transactionMasterDataSelect.value = '';
+            transactionPaymentMethodSelect.value = '';
+            transactionBankAccountSelect.value = ''; // Clear bank account selection
+            transactionBankAccountGroup.style.display = 'none'; // Hide bank account field
+            paymentMethodDetailsGroup.style.display = 'none'; // Hide payment details field
+            paymentMethodDetailsInput.value = ''; // Clear payment details input
             transactionAmountInput.value = '';
             transactionDescriptionInput.value = '';
-            transactionMasterDataSelect.value = ''; // Reset to default "Pilih Nama/Kategori"
-            transactionDebetInput.value = formatRupiah(0);
-            transactionKreditInput.value = formatRupiah(0);
-            transactionBalanceInput.value = formatRupiah(0);
+            transactionPredictedBalanceInput.value = formatRupiah(0);
         }
-
 
         // --- Dashboard Tab Logic ---
         function loadDashboardData() {
@@ -1347,8 +1451,7 @@
                     row.insertCell(0).textContent = date;
                     row.insertCell(1).textContent = transaction.description;
                     row.insertCell(2).textContent = transaction.masterDataName;
-                    // Display type more user-friendly
-                    row.insertCell(3).textContent = transaction.type === 'debet' ? 'Pemasukan' : 'Pengeluaran';
+                    row.insertCell(3).textContent = transaction.mainType; // Display main type
                     row.insertCell(4).textContent = formatRupiah(transaction.amount);
                 });
 
@@ -1558,7 +1661,8 @@
                             row.insertCell(0).textContent = date;
                             row.insertCell(1).textContent = transaction.description;
                             row.insertCell(2).textContent = transaction.masterDataName;
-                            row.insertCell(3).textContent = transaction.type === 'debet' ? 'Pemasukan' : 'Pengeluaran';
+                            // Display type more user-friendly
+                            row.insertCell(3).textContent = transaction.mainType; // Display main transaction type
                             // Ensure debet/kredit values are numbers before formatting
                             row.insertCell(4).textContent = formatRupiah(parseFloat(transaction.debet) || 0); 
                             row.insertCell(5).textContent = formatRupiah(parseFloat(transaction.kredit) || 0);
@@ -1739,6 +1843,7 @@
                 bankAccountNameInput.value = '';
                 bankAccountBalanceInput.value = '';
                 loadBankAccounts(); // Refresh list
+                loadBankAccountsForDropdown(); // Refresh dropdown for transaction form
                 loadBankReportDropdown(); // Refresh dropdown for bank report
             }).catch(error => {
                 console.error("Error adding bank account:", error);
@@ -1863,65 +1968,73 @@
                     bankOutstandingReportBody.innerHTML = '';
                     let periodTotalDebet = 0;
                     let periodTotalKredit = 0;
-                    let runningBalance = 0; // This running balance is for the *selected account* or *all accounts*
 
                     const transactions = [];
                     snapshot.forEach(childSnapshot => {
                         transactions.push(childSnapshot.val());
                     });
 
-                    // Sort transactions by timestamp (ascending) for running balance
-                    transactions.sort((a, b) => a.timestamp - b.timestamp);
-
-                    // Fetch initial balance for selected account(s)
-                    let initialBalanceForPeriod = 0;
-                    if (selectedAccountId === 'all') {
-                         for (let id in allBankAccountsData) {
-                            initialBalanceForPeriod += (allBankAccountsData[id].balance || 0);
-                        }
-                    } else if (allBankAccountsData[selectedAccountId]) {
-                        initialBalanceForPeriod = allBankAccountsData[selectedAccountId].balance || 0;
-                    }
-                    runningBalance = initialBalanceForPeriod;
-
-                    const filteredTransactions = transactions.filter(transaction => {
-                        // Assuming all transactions affect "cash/bank" for simplicity of this report.
-                        // In a real system, you'd link transactions to specific bank accounts.
-                        // For this report, we'll treat all recorded debits as bank inflows and credits as bank outflows.
-                        // If specific bank account linkage is needed, transactions would need a 'bankAccountId' field.
-                        return true; // All transactions are considered for now
+                    // Filter transactions that affect a bank account and match selectedAccountId
+                    const filteredBankTransactions = transactions.filter(transaction => {
+                        const hasBankAccount = transaction.bankAccountId;
+                        const matchesAccount = selectedAccountId === 'all' || transaction.bankAccountId === selectedAccountId;
+                        return hasBankAccount && matchesAccount;
                     });
 
-                    if (filteredTransactions.length === 0) {
-                        bankOutstandingReportBody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada mutasi kas/bank dalam periode ini.</td></tr>';
+                    // Sort filtered transactions by timestamp
+                    filteredBankTransactions.sort((a, b) => a.timestamp - b.timestamp);
+
+                    // Calculate running balance for each bank account
+                    const accountRunningBalances = {}; // Track balances per account
+                    // Initialize with current balances
+                    for (let id in allBankAccountsData) {
+                        accountRunningBalances[id] = allBankAccountsData[id].balance || 0;
+                    }
+
+                    if (filteredBankTransactions.length === 0) {
+                        bankOutstandingReportBody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada mutasi kas/bank dalam periode ini atau filter yang dipilih.</td></tr>';
                     } else {
-                        filteredTransactions.forEach(transaction => {
+                        filteredBankTransactions.forEach(transaction => {
                             const row = bankOutstandingReportBody.insertRow();
                             const date = new Date(transaction.timestamp).toLocaleDateString('id-ID');
-                            const debetAmount = parseFloat(transaction.debet || 0);
-                            const kreditAmount = parseFloat(transaction.kredit || 0);
+                            const debetAmount = parseFloat(transaction.debet || 0); // This is cash IN
+                            const kreditAmount = parseFloat(transaction.kredit || 0); // This is cash OUT
 
-                            if (transaction.type === 'debet') {
-                                runningBalance += debetAmount;
-                            } else if (transaction.type === 'kredit') {
-                                runningBalance -= kreditAmount;
+                            const bankAccountName = allBankAccountsData[transaction.bankAccountId]?.name || 'Akun Tidak Ditemukan';
+
+                            // Update running balance for the specific account
+                            if (transaction.bankAccountId) {
+                                if (transaction.type === 'debet') { // Cash In
+                                    accountRunningBalances[transaction.bankAccountId] += debetAmount;
+                                } else if (transaction.type === 'kredit') { // Cash Out
+                                    accountRunningBalances[transaction.bankAccountId] -= kreditAmount;
+                                }
                             }
-
+                            
                             row.insertCell(0).textContent = date;
                             row.insertCell(1).textContent = transaction.description;
-                            row.insertCell(2).textContent = "N/A"; // Or add a bank account field to transactions
+                            row.insertCell(2).textContent = bankAccountName;
                             row.insertCell(3).textContent = formatRupiah(debetAmount);
                             row.insertCell(4).textContent = formatRupiah(kreditAmount);
-                            row.insertCell(5).textContent = formatRupiah(runningBalance);
+                            row.insertCell(5).textContent = formatRupiah(accountRunningBalances[transaction.bankAccountId]); // Saldo akhir akun ini
 
                             periodTotalDebet += debetAmount;
                             periodTotalKredit += kreditAmount;
                         });
                     }
 
-                    totalBankDebet.textContent = formatRupiah(periodTotalDebet);
-                    totalBankKredit.textContent = formatRupiah(periodTotalKredit);
-                    finalBankBalancePeriod.textContent = formatRupiah(periodTotalDebet - periodTotalKredit);
+                    totalBankDebetPeriod.textContent = formatRupiah(periodTotalDebet);
+                    totalBankKreditPeriod.textContent = formatRupiah(periodTotalKredit);
+                    const netMutation = periodTotalDebet - periodTotalKredit;
+                    netBankMutationPeriod.textContent = formatRupiah(netMutation);
+
+                    // Update total current bank balance in footer of report (sum of current balances from database)
+                    let sumOfAllCurrentBankBalances = 0;
+                    for (let id in allBankAccountsData) {
+                        sumOfAllCurrentBankBalances += (allBankAccountsData[id].balance || 0);
+                    }
+                    totalCurrentBankBalance.textContent = formatRupiah(sumOfAllCurrentBankBalances);
+
                 })
                 .catch(error => {
                     console.error("Error generating bank report:", error);
