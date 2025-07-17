@@ -119,19 +119,20 @@
         nav {
             background-color: var(--card-bg);
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 0; /* Remove padding here, add to container */
+            padding: 0; 
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            min-height: 50px; /* Ensure a minimum height */
+            min-height: 50px; 
+            overflow: hidden; /* Prevent overflow on nav container itself */
         }
 
         nav .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 15px; /* Add padding here */
+            padding: 0 15px; 
             flex-grow: 1;
         }
 
@@ -145,12 +146,12 @@
             -ms-overflow-style: -ms-autohiding-scrollbar; /* For IE/Edge */
             white-space: nowrap; /* Keep all tabs in one line */
             flex-grow: 1; /* Allow tabs to take available space */
-            border-bottom: 3px solid transparent; /* Consistent border for active tab effect */
+            border-bottom: 3px solid transparent; 
         }
         
         /* Scrollbar styles for webkit browsers */
         .nav-tabs::-webkit-scrollbar {
-            height: 5px; /* Make scrollbar thinner */
+            height: 5px; 
         }
         .nav-tabs::-webkit-scrollbar-thumb {
             background: var(--primary-color);
@@ -186,12 +187,12 @@
             background-color: var(--danger-color);
             color: white;
             border: none;
-            padding: 8px 12px; /* Slightly smaller padding */
+            padding: 8px 12px; 
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.85em; /* Slightly smaller font */
+            font-size: 0.85em; 
             transition: background-color 0.3s ease;
-            margin-left: 15px; /* Space from tabs */
+            margin-left: 15px; 
             flex-shrink: 0; /* Prevent from shrinking */
             display: flex;
             align-items: center;
@@ -350,6 +351,17 @@
             transform: translateY(-1px);
         }
 
+        .btn-info {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #17a2b8;
+            transform: translateY(-1px);
+        }
+
+
         /* Table Styling */
         table {
             width: 100%;
@@ -497,16 +509,15 @@
             font-size: 0.9em;
         }
 
-
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
-                align-items: center; /* Center items for better mobile display */
+                align-items: center;
             }
             .logo-section {
                 width: 100%;
-                justify-content: center; /* Center logo */
+                justify-content: center;
             }
             .store-info {
                 text-align: center;
@@ -559,9 +570,7 @@
                 padding: 8px; /* Reduced padding */
                 font-size: 0.9em; /* Smaller font */
             }
-            table th:nth-child(n+3), table td:nth-child(n+3) { /* Collapse columns for better fit, adjust as needed */
-                 /* You might choose to hide some columns or make them scrollable */
-            }
+            /* You might choose to hide some columns or make them scrollable */
         }
     </style>
 </head>
@@ -732,6 +741,10 @@
                             <option value="Lain-lain">Lain-lain</option>
                         </select>
                     </div>
+                     <div class="form-group">
+                        <label for="filter-by-name-input">Filter Berdasarkan Nama:</label>
+                        <input type="text" id="filter-by-name-input" placeholder="Cari nama...">
+                    </div>
                     <div class="btn-group">
                         <button id="generate-report-btn" class="btn btn-primary"><i class="fas fa-search"></i> Buat Laporan</button>
                         <button id="download-pdf-btn" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Unduh PDF</button>
@@ -795,6 +808,50 @@
                 <h3>Daftar Akun Bank</h3>
                 <ul id="bank-accounts-list">
                     </ul>
+
+                <h3 style="margin-top: 40px;"><i class="fas fa-file-invoice-dollar"></i> Laporan Outstanding Saldo Bank / Mutasi Kas</h3>
+                <p>Laporan ini menyajikan mutasi kas/bank dari semua transaksi yang masuk.</p>
+                 <div class="report-filters-group">
+                    <div class="form-group">
+                        <label for="bank-report-start-date">Dari Tanggal:</label>
+                        <input type="date" id="bank-report-start-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="bank-report-end-date">Sampai Tanggal:</label>
+                        <input type="date" id="bank-report-end-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="bank-report-account-select">Pilih Akun Bank:</label>
+                        <select id="bank-report-account-select">
+                            <option value="all">Semua Akun Bank</option>
+                            </select>
+                    </div>
+                     <div class="btn-group">
+                        <button id="generate-bank-report-btn" class="btn btn-primary"><i class="fas fa-search"></i> Buat Laporan Bank</button>
+                        <button id="download-bank-pdf-btn" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Unduh PDF Bank</button>
+                     </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Keterangan Transaksi</th>
+                            <th>Akun Bank</th>
+                            <th>Debit (Masuk)</th>
+                            <th>Kredit (Keluar)</th>
+                            <th>Saldo Akhir Akun</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bank-outstanding-report-body">
+                        </tbody>
+                </table>
+                <div class="report-summary-box">
+                    <p>Total Pemasukan Kas/Bank: <span class="value" id="total-bank-debet">Rp 0</span></p>
+                    <p>Total Pengeluaran Kas/Bank: <span class="value" id="total-bank-kredit">Rp 0</span></p>
+                    <p>Saldo Akhir Kas/Bank (Periode): <span class="value" id="final-bank-balance-period">Rp 0</span></p>
+                    <p>Total Saldo Semua Akun Bank: <span class="value" id="total-current-bank-balance">Rp 0</span></p>
+                </div>
             </div>
 
             <div id="settings-tab" class="tab-pane">
@@ -871,6 +928,7 @@
 
         // --- Global Variables/Caches ---
         let masterData = {}; // Cache master data for dropdowns and balance calculation
+        let allBankAccountsData = {}; // Cache all bank account data for reports
 
         // --- UI Elements (Centralized) ---
         const appTitle = document.getElementById('app-title');
@@ -880,10 +938,10 @@
         const currentDatePicker = document.getElementById('current-date');
 
         // Transaction Tab Elements
-        const transactionDateInput = document.getElementById('transaction-date'); // New: Tanggal input
+        const transactionDateInput = document.getElementById('transaction-date');
         const transactionAmountInput = document.getElementById('transaction-amount');
         const transactionDescriptionInput = document.getElementById('transaction-description');
-        const transactionMasterDataSelect = document.getElementById('transaction-master-data'); // Now selects type of party
+        const transactionMasterDataSelect = document.getElementById('transaction-master-data');
         const transactionDebetInput = document.getElementById('transaction-debet');
         const transactionKreditInput = document.getElementById('transaction-kredit');
         const transactionBalanceInput = document.getElementById('transaction-balance');
@@ -900,6 +958,7 @@
         const reportStartDateInput = document.getElementById('report-start-date');
         const reportEndDateInput = document.getElementById('report-end-date');
         const filterMasterDataType = document.getElementById('filter-master-data-type'); // New filter
+        const filterByNameInput = document.getElementById('filter-by-name-input'); // New filter
         const generateReportBtn = document.getElementById('generate-report-btn');
         const downloadPdfBtn = document.getElementById('download-pdf-btn');
         const exportExcelBtn = document.getElementById('export-excel-btn'); // New: Excel button
@@ -915,6 +974,17 @@
         const bankAccountBalanceInput = document.getElementById('bank-account-balance');
         const addBankAccountBtn = document.getElementById('add-bank-account-btn');
         const bankAccountsList = document.getElementById('bank-accounts-list');
+        const bankReportStartDateInput = document.getElementById('bank-report-start-date');
+        const bankReportEndDateInput = document.getElementById('bank-report-end-date');
+        const bankReportAccountSelect = document.getElementById('bank-report-account-select');
+        const generateBankReportBtn = document.getElementById('generate-bank-report-btn');
+        const downloadBankPdfBtn = document.getElementById('download-bank-pdf-btn');
+        const bankOutstandingReportBody = document.getElementById('bank-outstanding-report-body');
+        const totalBankDebet = document.getElementById('total-bank-debet');
+        const totalBankKredit = document.getElementById('total-bank-kredit');
+        const finalBankBalancePeriod = document.getElementById('final-bank-balance-period');
+        const totalCurrentBankBalance = document.getElementById('total-current-bank-balance');
+
 
         // Settings Tab Elements
         const settingsStoreNameInput = document.getElementById('store-name-input');
@@ -928,6 +998,8 @@
         // Format Rupiah (modified to handle number input directly)
         function formatRupiah(number) {
             if (number === null || number === undefined || isNaN(number)) return 'Rp 0';
+            // Ensure number is a float
+            number = parseFloat(number);
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
                 currency: 'IDR',
@@ -949,6 +1021,8 @@
             // Set default date for transaction form to today
             const today = new Date();
             transactionDateInput.value = today.toISOString().split('T')[0];
+            bankReportStartDateInput.value = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+            bankReportEndDateInput.value = today.toISOString().split('T')[0];
         }
         updateCurrentDate();
 
@@ -985,6 +1059,8 @@
                     loadMasterDataBalanceReport(); // Load balance report for master data
                 } else if (activeTabId === 'bank-accounts-tab') {
                     loadBankAccounts();
+                    loadBankReportDropdown(); // Populate bank account dropdown for report
+                    generateBankReport(); // Generate bank report by default
                 } else if (activeTabId === 'settings-tab') {
                     loadSettings();
                 }
@@ -1137,8 +1213,7 @@
                 kreditAmount = amount;
             } else { // 'Lain-lain' type
                 // For 'Lain-lain' category, we need to decide if it's debet or kredit.
-                // For now, let's assume it's always 'kredit' (expense) if not Customer/Supplier.
-                // A more advanced solution would be to add another dropdown for "Lain-lain" transactions.
+                // Ask user for 'Lain-lain' type
                 if (confirm('Untuk kategori "Lain-lain", apakah transaksi ini Pemasukan? (Jika tidak, akan dianggap Pengeluaran)')) {
                     transactionTypeForDB = 'debet';
                     debetAmount = amount;
@@ -1152,7 +1227,7 @@
 
 
             const transactionData = {
-                date: date, // Store transaction date
+                date: date, // Store transaction date (YYYY-MM-DD)
                 amount: amount, // Store original amount as number
                 description: description,
                 type: transactionTypeForDB, // 'debet' or 'kredit' determined by master data type
@@ -1388,6 +1463,7 @@
         generateReportBtn.addEventListener('click', generateReport);
         downloadPdfBtn.addEventListener('click', downloadPdfReport);
         filterMasterDataType.addEventListener('change', generateReport); // Filter report by master data type
+        filterByNameInput.addEventListener('input', generateReport); // Filter report by name input
 
         // Export to Excel (Placeholder)
         exportExcelBtn.addEventListener('click', () => {
@@ -1416,10 +1492,14 @@
             const startDate = reportStartDateInput.value;
             const endDate = reportEndDateInput.value;
             const filterType = filterMasterDataType.value;
+            const filterName = filterByNameInput.value;
 
             let message = `Laporan Transaksi\nPeriode: ${startDate} s/d ${endDate}\n`;
             if (filterType !== 'all') {
-                message += `Filter: ${filterType}\n`;
+                message += `Filter Tipe: ${filterType}\n`;
+            }
+            if (filterName) {
+                message += `Filter Nama: ${filterName}\n`;
             }
             message += `\nTotal Debet: ${totalDebet}\n`;
             message += `Total Kredit: ${totalKredit}\n`;
@@ -1434,6 +1514,7 @@
             const startDate = reportStartDateInput.value;
             const endDate = reportEndDateInput.value;
             const selectedMasterDataType = filterMasterDataType.value; // Get selected filter type
+            const filterByName = filterByNameInput.value.toLowerCase(); // Get filter name
 
             if (!startDate || !endDate) {
                 alert('Mohon pilih rentang tanggal untuk laporan.');
@@ -1458,9 +1539,11 @@
                         transactions.push(childSnapshot.val());
                     });
 
-                    // Filter by master data type if selected
+                    // Apply filters
                     const filteredTransactions = transactions.filter(transaction => {
-                        return selectedMasterDataType === 'all' || transaction.masterDataType === selectedMasterDataType;
+                        const matchesType = selectedMasterDataType === 'all' || transaction.masterDataType === selectedMasterDataType;
+                        const matchesName = filterByName === '' || (transaction.masterDataName && transaction.masterDataName.toLowerCase().includes(filterByName));
+                        return matchesType && matchesName;
                     });
 
                     // Sort transactions by timestamp (ascending) for consistent display
@@ -1477,16 +1560,16 @@
                             row.insertCell(2).textContent = transaction.masterDataName;
                             row.insertCell(3).textContent = transaction.type === 'debet' ? 'Pemasukan' : 'Pengeluaran';
                             // Ensure debet/kredit values are numbers before formatting
-                            row.insertCell(4).textContent = formatRupiah(transaction.debet || 0); 
-                            row.insertCell(5).textContent = formatRupiah(transaction.kredit || 0);
+                            row.insertCell(4).textContent = formatRupiah(parseFloat(transaction.debet) || 0); 
+                            row.insertCell(5).textContent = formatRupiah(parseFloat(transaction.kredit) || 0);
                             
-                            totalDebet += (transaction.debet || 0); 
-                            totalKredit += (transaction.kredit || 0);
+                            totalDebet += (parseFloat(transaction.debet) || 0); 
+                            totalKredit += (parseFloat(transaction.kredit) || 0);
                         });
                     }
 
                     totalDebetReport.textContent = formatRupiah(totalDebet);
-                    totalKreditReport.textContent = formatRuhiah(totalKredit);
+                    totalKreditReport.textContent = formatRupiah(totalKredit);
                     const finalBalance = totalDebet - totalKredit;
                     finalBalanceReport.textContent = formatRupiah(finalBalance);
                     // Add class for visual feedback
@@ -1587,9 +1670,12 @@
                 if (filterMasterDataType.value !== 'all') {
                     doc.text(`Filter Tipe Pihak: ${filterMasterDataType.value}`, 20, 70);
                 }
+                if (filterByNameInput.value !== '') {
+                    doc.text(`Filter Nama: ${filterByNameInput.value}`, 20, 85);
+                }
 
 
-                let currentY = 85; // Starting Y position after header info and filter
+                let currentY = 100; // Starting Y position after header info and filter
 
                 addTableToPdf(reportTable, "Detail Transaksi", currentY).then(heightOfFirstTable => {
                     currentY += heightOfFirstTable; // Update Y for next element
@@ -1653,6 +1739,7 @@
                 bankAccountNameInput.value = '';
                 bankAccountBalanceInput.value = '';
                 loadBankAccounts(); // Refresh list
+                loadBankReportDropdown(); // Refresh dropdown for bank report
             }).catch(error => {
                 console.error("Error adding bank account:", error);
                 alert('Gagal menambahkan Akun Bank: ' + error.message);
@@ -1662,13 +1749,18 @@
         function loadBankAccounts() {
             database.ref('bankAccounts').on('value', snapshot => {
                 bankAccountsList.innerHTML = ''; // Clear existing list
-                const data = snapshot.val();
-                if (data) {
-                    // Sort accounts by name for consistent display
-                    const sortedAccounts = Object.keys(data).map(key => ({ id: key, ...data[key] }))
-                        .sort((a, b) => a.name.localeCompare(b.name));
+                allBankAccountsData = snapshot.val() || {}; // Cache all bank accounts data
+
+                if (Object.keys(allBankAccountsData).length === 0) {
+                    bankAccountsList.innerHTML = '<li class="text-center">Belum ada rekening bank.</li>';
+                } else {
+                    // Calculate total current bank balance across all accounts
+                    let totalBankBalance = 0;
+                    const sortedAccounts = Object.keys(allBankAccountsData).map(key => ({ id: key, ...allBankAccountsData[key] }))
+                                            .sort((a, b) => a.name.localeCompare(b.name));
 
                     sortedAccounts.forEach(account => {
+                        totalBankBalance += (account.balance || 0);
                         const listItem = document.createElement('li');
                         listItem.innerHTML = `
                             <span>${account.name}</span>
@@ -1680,8 +1772,7 @@
                         `;
                         bankAccountsList.appendChild(listItem);
                     });
-                } else {
-                    bankAccountsList.innerHTML = '<li class="text-center">Belum ada rekening bank.</li>';
+                    totalCurrentBankBalance.textContent = formatRupiah(totalBankBalance);
                 }
             }, error => {
                 console.error("Error loading bank accounts:", error);
@@ -1732,6 +1823,117 @@
                     });
             }
         };
+
+        // --- Laporan Outstanding Saldo Bank / Mutasi Kas ---
+        generateBankReportBtn.addEventListener('click', generateBankReport);
+        downloadBankPdfBtn.addEventListener('click', downloadBankPdfReport);
+        bankReportAccountSelect.addEventListener('change', generateBankReport);
+
+        function loadBankReportDropdown() {
+            bankReportAccountSelect.innerHTML = '<option value="all">Semua Akun Bank</option>';
+            for (let id in allBankAccountsData) {
+                const account = allBankAccountsData[id];
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = account.name;
+                bankReportAccountSelect.appendChild(option);
+            }
+        }
+
+
+        function generateBankReport() {
+            const startDate = bankReportStartDateInput.value;
+            const endDate = bankReportEndDateInput.value;
+            const selectedAccountId = bankReportAccountSelect.value;
+
+            if (!startDate || !endDate) {
+                alert('Mohon pilih rentang tanggal untuk laporan bank.');
+                return;
+            }
+
+            const startTimestamp = new Date(startDate).getTime();
+            const endTimestamp = new Date(endDate);
+            endTimestamp.setHours(23, 59, 59, 999);
+
+            database.ref('transactions')
+                .orderByChild('timestamp')
+                .startAt(startTimestamp)
+                .endAt(endTimestamp.getTime())
+                .once('value', snapshot => {
+                    bankOutstandingReportBody.innerHTML = '';
+                    let periodTotalDebet = 0;
+                    let periodTotalKredit = 0;
+                    let runningBalance = 0; // This running balance is for the *selected account* or *all accounts*
+
+                    const transactions = [];
+                    snapshot.forEach(childSnapshot => {
+                        transactions.push(childSnapshot.val());
+                    });
+
+                    // Sort transactions by timestamp (ascending) for running balance
+                    transactions.sort((a, b) => a.timestamp - b.timestamp);
+
+                    // Fetch initial balance for selected account(s)
+                    let initialBalanceForPeriod = 0;
+                    if (selectedAccountId === 'all') {
+                         for (let id in allBankAccountsData) {
+                            initialBalanceForPeriod += (allBankAccountsData[id].balance || 0);
+                        }
+                    } else if (allBankAccountsData[selectedAccountId]) {
+                        initialBalanceForPeriod = allBankAccountsData[selectedAccountId].balance || 0;
+                    }
+                    runningBalance = initialBalanceForPeriod;
+
+                    const filteredTransactions = transactions.filter(transaction => {
+                        // Assuming all transactions affect "cash/bank" for simplicity of this report.
+                        // In a real system, you'd link transactions to specific bank accounts.
+                        // For this report, we'll treat all recorded debits as bank inflows and credits as bank outflows.
+                        // If specific bank account linkage is needed, transactions would need a 'bankAccountId' field.
+                        return true; // All transactions are considered for now
+                    });
+
+                    if (filteredTransactions.length === 0) {
+                        bankOutstandingReportBody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada mutasi kas/bank dalam periode ini.</td></tr>';
+                    } else {
+                        filteredTransactions.forEach(transaction => {
+                            const row = bankOutstandingReportBody.insertRow();
+                            const date = new Date(transaction.timestamp).toLocaleDateString('id-ID');
+                            const debetAmount = parseFloat(transaction.debet || 0);
+                            const kreditAmount = parseFloat(transaction.kredit || 0);
+
+                            if (transaction.type === 'debet') {
+                                runningBalance += debetAmount;
+                            } else if (transaction.type === 'kredit') {
+                                runningBalance -= kreditAmount;
+                            }
+
+                            row.insertCell(0).textContent = date;
+                            row.insertCell(1).textContent = transaction.description;
+                            row.insertCell(2).textContent = "N/A"; // Or add a bank account field to transactions
+                            row.insertCell(3).textContent = formatRupiah(debetAmount);
+                            row.insertCell(4).textContent = formatRupiah(kreditAmount);
+                            row.insertCell(5).textContent = formatRupiah(runningBalance);
+
+                            periodTotalDebet += debetAmount;
+                            periodTotalKredit += kreditAmount;
+                        });
+                    }
+
+                    totalBankDebet.textContent = formatRupiah(periodTotalDebet);
+                    totalBankKredit.textContent = formatRupiah(periodTotalKredit);
+                    finalBankBalancePeriod.textContent = formatRupiah(periodTotalDebet - periodTotalKredit);
+                })
+                .catch(error => {
+                    console.error("Error generating bank report:", error);
+                    bankOutstandingReportBody.innerHTML = '<tr><td colspan="6" class="text-center" style="color: red;">Gagal memuat laporan bank.</td></tr>';
+                });
+        }
+
+        function downloadBankPdfReport() {
+            alert('Fungsi Unduh PDF Laporan Bank belum diimplementasikan.');
+            // This would follow a similar pattern to downloadPdfReport for transactions,
+            // but targeting the bank outstanding report table.
+        }
 
 
         // --- Logout Function ---
