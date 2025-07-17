@@ -119,12 +119,20 @@
         nav {
             background-color: var(--card-bg);
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 0;
+            padding: 0; /* Remove padding here, add to container */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap; /* Allow wrapping on small screens for structure */
             margin-bottom: 20px;
+            min-height: 50px; /* Ensure a minimum height */
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px; /* Add padding here */
+            flex-grow: 1;
         }
 
         .nav-tabs {
@@ -152,7 +160,6 @@
             background: var(--light-bg);
         }
 
-
         .nav-tabs li {
             padding: 15px 20px;
             cursor: pointer;
@@ -179,12 +186,13 @@
             background-color: var(--danger-color);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 8px 12px; /* Slightly smaller padding */
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.9em;
+            font-size: 0.85em; /* Slightly smaller font */
             transition: background-color 0.3s ease;
-            margin-right: 15px;
+            margin-left: 15px; /* Space from tabs */
+            flex-shrink: 0; /* Prevent from shrinking */
             display: flex;
             align-items: center;
             gap: 8px;
@@ -351,17 +359,17 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* subtle shadow */
         }
 
-        table th, table td {
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            text-align: left;
-        }
-
         table thead th {
             background-color: var(--secondary-color);
             color: white;
             font-weight: 600;
             white-space: nowrap; /* Prevent headers from wrapping too much */
+            border: 1px solid var(--secondary-color); /* Ensure border color matches background */
+        }
+        table th, table td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
         }
 
         table tbody tr:nth-child(even) {
@@ -510,26 +518,29 @@
                 width: 100%;
                 justify-content: center;
             }
-            nav {
-                flex-direction: column;
-                align-items: stretch;
-                padding: 10px 0; /* Add padding for overall nav */
+            /* Nav bar specific adjustments for better mobile scrolling */
+            nav .container {
+                flex-direction: column; /* Stack nav-tabs and logout button */
+                align-items: flex-start; /* Align contents to start */
+                padding: 0; /* Remove horizontal padding here, let nav-tabs handle it */
             }
             .nav-tabs {
-                width: 100%;
+                width: 100%; /* Take full width for scrolling */
                 justify-content: flex-start;
-                padding: 0 15px; /* Add horizontal padding to make scrollbar visible */
-                margin-bottom: 10px; /* Space between tabs and logout btn */
-                /* Ensure overflow-x is the only horizontal control */
+                padding: 0 15px; /* Horizontal padding for scrollable area */
+                margin-bottom: 10px; /* Space below tabs */
+                flex-wrap: nowrap; /* Ensure no wrapping, only scrolling */
             }
             .nav-tabs li {
                 font-size: 13px;
                 padding: 10px 12px;
             }
             .logout-btn {
-                margin: 0 15px; /* Adjust margin */
-                width: calc(100% - 30px); /* Fill width */
+                margin: 0 15px 10px 15px; /* Margin bottom for separation */
+                width: calc(100% - 30px); /* Fill width with margin */
+                text-align: center; /* Center text in button */
             }
+
             .form-group input, .form-group textarea, .form-group select {
                 width: 100%;
             }
@@ -541,6 +552,15 @@
             }
             .summary-cards {
                 grid-template-columns: 1fr; /* Stack cards on very small screens */
+            }
+
+            /* Table cells smaller on mobile for readability */
+            table th, table td {
+                padding: 8px; /* Reduced padding */
+                font-size: 0.9em; /* Smaller font */
+            }
+            table th:nth-child(n+3), table td:nth-child(n+3) { /* Collapse columns for better fit, adjust as needed */
+                 /* You might choose to hide some columns or make them scrollable */
             }
         }
     </style>
@@ -575,8 +595,8 @@
                 <li data-tab="bank-accounts-tab"><i class="fas fa-university"></i> Saldo Bank</li>
                 <li data-tab="settings-tab"><i class="fas fa-cog"></i> Pengaturan</li>
             </ul>
+            <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
-        <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </nav>
 
     <main>
@@ -703,11 +723,20 @@
                         <label for="report-end-date">Sampai Tanggal:</label>
                         <input type="date" id="report-end-date">
                     </div>
+                    <div class="form-group">
+                        <label for="filter-master-data-type">Filter Tipe Pihak:</label>
+                        <select id="filter-master-data-type">
+                            <option value="all">Semua Tipe</option>
+                            <option value="Customer">Customer</option>
+                            <option value="Supplier">Supplier</option>
+                            <option value="Lain-lain">Lain-lain</option>
+                        </select>
+                    </div>
                     <div class="btn-group">
                         <button id="generate-report-btn" class="btn btn-primary"><i class="fas fa-search"></i> Buat Laporan</button>
                         <button id="download-pdf-btn" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Unduh PDF</button>
                         <button id="export-excel-btn" class="btn btn-success"><i class="fas fa-file-excel"></i> Export Excel</button>
-                        <button id="share-whatsapp-btn" class="btn btn-success"><i class="fab fa-whatsapp"></i> Share WhatsApp</button>
+                        <button id="share-whatsapp-btn" class="btn btn-info"><i class="fab fa-whatsapp"></i> Share WhatsApp</button>
                     </div>
                 </div>
 
@@ -870,6 +899,7 @@
         // Report Tab Elements
         const reportStartDateInput = document.getElementById('report-start-date');
         const reportEndDateInput = document.getElementById('report-end-date');
+        const filterMasterDataType = document.getElementById('filter-master-data-type'); // New filter
         const generateReportBtn = document.getElementById('generate-report-btn');
         const downloadPdfBtn = document.getElementById('download-pdf-btn');
         const exportExcelBtn = document.getElementById('export-excel-btn'); // New: Excel button
@@ -941,8 +971,7 @@
                 if (activeTabId === 'dashboard-tab') {
                     loadDashboardData();
                 } else if (activeTabId === 'transaction-tab') {
-                    // Re-initialize transaction form as it's the default
-                    resetTransactionForm();
+                    resetTransactionForm(); // Reset form & set today's date
                     loadMasterDataForDropdown(); // Ensure dropdown is fresh
                 } else if (activeTabId === 'master-data-tab') {
                     loadMasterData();
@@ -1047,54 +1076,37 @@
 
 
         // --- Transaksi Tab Logic ---
-        transactionAmountInput.addEventListener('input', calculateDebetKreditBalance); // Input type number, so no Rupiah formatting here
+        transactionAmountInput.addEventListener('input', calculateDebetKreditBalance); 
         transactionMasterDataSelect.addEventListener('change', calculateDebetKreditBalance);
 
         function calculateDebetKreditBalance() {
             const amount = parseFloat(transactionAmountInput.value) || 0;
             const masterDataId = transactionMasterDataSelect.value;
-            let transactionType = ''; // 'debet' or 'kredit' for transaction record
-
+            
+            // Reset fields
             transactionDebetInput.value = formatRupiah(0);
             transactionKreditInput.value = formatRupiah(0);
             transactionBalanceInput.value = formatRupiah(0);
 
             if (masterDataId && masterData[masterDataId]) {
                 const masterItemType = masterData[masterDataId].type; // 'Supplier', 'Customer', 'Lain-lain'
-                
-                // Determine debet/kredit based on master data type and amount
-                if (masterItemType === 'Customer') {
-                    // Customer: Transaction typically increases Receivable (Debet)
-                    transactionDebetInput.value = formatRupiah(amount);
-                    transactionType = 'debet'; 
-                } else if (masterItemType === 'Supplier') {
-                    // Supplier: Transaction typically increases Payable (Kredit)
-                    transactionKreditInput.value = formatRupiah(amount);
-                    transactionType = 'kredit';
-                } else {
-                    // For 'Lain-lain' or unset, let user specify (or keep as 0)
-                    // For simplicity, we'll keep it as 0 unless a specific type is implied
-                    // Or you could add an explicit 'transaction type' dropdown for Lain-lain
-                    transactionDebetInput.value = formatRupiah(0); // No default debet/kredit for 'Lain-lain'
-                    transactionKreditInput.value = formatRupiah(0);
-                    transactionType = 'lain-lain'; // Custom type for non-customer/supplier
-                }
-
-                // Calculate and display predicted balance per master data item
                 const currentBalance = masterData[masterDataId].balance || 0;
                 let newBalance = currentBalance;
 
-                if (transactionType === 'debet') {
-                    newBalance = currentBalance + amount;
-                } else if (transactionType === 'kredit') {
-                    newBalance = currentBalance - amount;
+                // Determine debet/kredit display based on master data type
+                if (masterItemType === 'Customer') {
+                    transactionDebetInput.value = formatRupiah(amount);
+                    newBalance = currentBalance + amount; // If customer, it's a receivable
+                } else if (masterItemType === 'Supplier') {
+                    transactionKreditInput.value = formatRupiah(amount);
+                    newBalance = currentBalance - amount; // If supplier, it's a payable
+                } else { // 'Lain-lain'
+                    // For 'Lain-lain', show 0 in debet/kredit fields, and current balance
+                    // Decision for actual transaction type (debet/kredit) will be made on save
+                    newBalance = currentBalance; // No change in balance prediction here for 'Lain-lain'
                 }
-                // If 'Lain-lain', balance prediction might not be straightforward
-                if (masterItemType !== 'Lain-lain') {
-                     transactionBalanceInput.value = formatRupiah(newBalance);
-                } else {
-                    transactionBalanceInput.value = formatRupiah(currentBalance); // Show current balance without prediction for 'Lain-lain'
-                }
+                
+                transactionBalanceInput.value = formatRupiah(newBalance);
             }
         }
 
@@ -1105,40 +1117,47 @@
             const masterDataId = transactionMasterDataSelect.value;
             const masterDataItem = masterDataId ? masterData[masterDataId] : null;
 
-            if (!date || amount <= 0 || !description || !masterDataId) {
+            if (!date || amount <= 0 || !description || !masterDataId || !masterDataItem) {
                 alert('Mohon lengkapi semua data transaksi (Tanggal, Jumlah, Keterangan, Jenis Pihak/Kategori).');
                 return;
             }
 
-            // Determine actual transaction type (debet/kredit) based on master data type
+            // Determine actual transaction type (debet/kredit) for storage based on master data type
             let transactionTypeForDB = '';
             let debetAmount = 0;
             let kreditAmount = 0;
 
             if (masterDataItem.type === 'Customer') {
-                transactionTypeForDB = 'debet';
+                transactionTypeForDB = 'debet'; // Customer: Pemasukan (Piutang)
                 debetAmount = amount;
+                kreditAmount = 0;
             } else if (masterDataItem.type === 'Supplier') {
-                transactionTypeForDB = 'kredit';
+                transactionTypeForDB = 'kredit'; // Supplier: Pengeluaran (Hutang)
+                debetAmount = 0;
                 kreditAmount = amount;
-            } else { // 'Lain-lain'
+            } else { // 'Lain-lain' type
                 // For 'Lain-lain' category, we need to decide if it's debet or kredit.
                 // For now, let's assume it's always 'kredit' (expense) if not Customer/Supplier.
-                // Or you could add a separate dropdown for 'Lain-lain' transactions.
-                transactionTypeForDB = 'kredit'; // Default to kredit for 'Lain-lain'
-                kreditAmount = amount;
-                alert('Untuk kategori "Lain-lain", transaksi dicatat sebagai Pengeluaran (Kredit) secara default. Mohon sesuaikan secara manual jika ini Pemasukan.');
-                // You might need a more robust way to handle 'Lain-lain' as debet or kredit.
+                // A more advanced solution would be to add another dropdown for "Lain-lain" transactions.
+                if (confirm('Untuk kategori "Lain-lain", apakah transaksi ini Pemasukan? (Jika tidak, akan dianggap Pengeluaran)')) {
+                    transactionTypeForDB = 'debet';
+                    debetAmount = amount;
+                    kreditAmount = 0;
+                } else {
+                    transactionTypeForDB = 'kredit';
+                    debetAmount = 0;
+                    kreditAmount = amount;
+                }
             }
 
 
             const transactionData = {
                 date: date, // Store transaction date
-                amount: amount, // Store as number
+                amount: amount, // Store original amount as number
                 description: description,
                 type: transactionTypeForDB, // 'debet' or 'kredit' determined by master data type
-                debet: debetAmount,
-                kredit: kreditAmount,
+                debet: debetAmount, // Actual debet value
+                kredit: kreditAmount, // Actual kredit value
                 masterDataId: masterDataId,
                 masterDataName: masterDataItem.name,
                 masterDataType: masterDataItem.type,
@@ -1368,6 +1387,7 @@
         // --- Laporan Tab Logic ---
         generateReportBtn.addEventListener('click', generateReport);
         downloadPdfBtn.addEventListener('click', downloadPdfReport);
+        filterMasterDataType.addEventListener('change', generateReport); // Filter report by master data type
 
         // Export to Excel (Placeholder)
         exportExcelBtn.addEventListener('click', () => {
@@ -1395,9 +1415,13 @@
             const finalBalance = finalBalanceReport.textContent;
             const startDate = reportStartDateInput.value;
             const endDate = reportEndDateInput.value;
+            const filterType = filterMasterDataType.value;
 
-            let message = `Laporan Transaksi\nPeriode: ${startDate} s/d ${endDate}\n\n`;
-            message += `Total Debet: ${totalDebet}\n`;
+            let message = `Laporan Transaksi\nPeriode: ${startDate} s/d ${endDate}\n`;
+            if (filterType !== 'all') {
+                message += `Filter: ${filterType}\n`;
+            }
+            message += `\nTotal Debet: ${totalDebet}\n`;
             message += `Total Kredit: ${totalKredit}\n`;
             message += `Saldo Akhir: ${finalBalance}\n\n`;
             message += `Lihat detail di aplikasi.`;
@@ -1409,6 +1433,7 @@
         function generateReport() {
             const startDate = reportStartDateInput.value;
             const endDate = reportEndDateInput.value;
+            const selectedMasterDataType = filterMasterDataType.value; // Get selected filter type
 
             if (!startDate || !endDate) {
                 alert('Mohon pilih rentang tanggal untuk laporan.');
@@ -1416,7 +1441,6 @@
             }
 
             const startTimestamp = new Date(startDate).getTime();
-            // Set end date to end of the day to include all transactions on that day
             const endTimestamp = new Date(endDate);
             endTimestamp.setHours(23, 59, 59, 999); 
 
@@ -1434,30 +1458,35 @@
                         transactions.push(childSnapshot.val());
                     });
 
-                    // Sort transactions by timestamp (ascending) for consistent display
-                    transactions.sort((a, b) => a.timestamp - b.timestamp);
+                    // Filter by master data type if selected
+                    const filteredTransactions = transactions.filter(transaction => {
+                        return selectedMasterDataType === 'all' || transaction.masterDataType === selectedMasterDataType;
+                    });
 
-                    if (transactions.length === 0) {
-                        reportTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada transaksi dalam periode ini.</td></tr>';
+                    // Sort transactions by timestamp (ascending) for consistent display
+                    filteredTransactions.sort((a, b) => a.timestamp - b.timestamp);
+
+                    if (filteredTransactions.length === 0) {
+                        reportTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada transaksi dalam periode ini atau filter yang dipilih.</td></tr>';
                     } else {
-                        transactions.forEach(transaction => {
+                        filteredTransactions.forEach(transaction => {
                             const row = reportTableBody.insertRow();
                             const date = new Date(transaction.timestamp).toLocaleDateString('id-ID');
                             row.insertCell(0).textContent = date;
                             row.insertCell(1).textContent = transaction.description;
                             row.insertCell(2).textContent = transaction.masterDataName;
-                            // Display type more user-friendly
                             row.insertCell(3).textContent = transaction.type === 'debet' ? 'Pemasukan' : 'Pengeluaran';
-                            row.insertCell(4).textContent = formatRupiah(transaction.debet); // Use transaction.debet/kredit directly
-                            row.insertCell(5).textContent = formatRupiah(transaction.kredit);
+                            // Ensure debet/kredit values are numbers before formatting
+                            row.insertCell(4).textContent = formatRupiah(transaction.debet || 0); 
+                            row.insertCell(5).textContent = formatRupiah(transaction.kredit || 0);
                             
-                            totalDebet += transaction.debet; // Sum the actual debet/kredit values
-                            totalKredit += transaction.kredit;
+                            totalDebet += (transaction.debet || 0); 
+                            totalKredit += (transaction.kredit || 0);
                         });
                     }
 
                     totalDebetReport.textContent = formatRupiah(totalDebet);
-                    totalKreditReport.textContent = formatRupiah(totalKredit);
+                    totalKreditReport.textContent = formatRuhiah(totalKredit);
                     const finalBalance = totalDebet - totalKredit;
                     finalBalanceReport.textContent = formatRupiah(finalBalance);
                     // Add class for visual feedback
@@ -1481,7 +1510,7 @@
                     masterDataBalanceReportBody.innerHTML = '<tr><td colspan="3" class="text-center">Belum ada data Customer/Supplier.</td></tr>';
                 } else {
                     sortedMasterData.forEach(item => {
-                        // Only show Customer and Supplier in this report
+                        // Only show Customer and Supplier in this report, assuming 'Lain-lain' might not be in this summary
                         if (item.type === 'Customer' || item.type === 'Supplier') {
                             const row = masterDataBalanceReportBody.insertRow();
                             row.insertCell(0).textContent = item.name;
@@ -1489,6 +1518,7 @@
                             row.insertCell(2).textContent = formatRupiah(item.balance || 0);
                         }
                     });
+                     // If after filtering, no Customer/Supplier left
                      if (masterDataBalanceReportBody.rows.length === 0) {
                         masterDataBalanceReportBody.innerHTML = '<tr><td colspan="3" class="text-center">Tidak ada Customer atau Supplier.</td></tr>';
                     }
@@ -1524,8 +1554,8 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('p', 'pt', 'a4'); // Portrait, points, A4
 
-                const reportTable = document.querySelector('#report-tab table:first-of-type'); // Select the first table (detail transaksi)
-                const balanceTable = document.querySelector('#report-tab table:last-of-type'); // Select the last table (saldo per customer/supplier)
+                const reportTable = document.querySelector('#report-tab table:first-of-type'); // Get the table element (Detail Transaksi)
+                const balanceTable = document.querySelector('#report-tab table:last-of-type'); // Get the table element (Laporan Saldo)
 
                 // Function to add a table to PDF
                 const addTableToPdf = (tableElement, title, startYPos) => {
@@ -1533,7 +1563,6 @@
                         const imgData = canvas.toDataURL('image/png');
                         const imgWidth = doc.internal.pageSize.getWidth() - 40; // Page width - margin
                         const imgHeight = canvas.height * imgWidth / canvas.width;
-                        let heightLeft = imgHeight;
                         let position = startYPos; // Initial Y position for image
 
                         // Add title for table
@@ -1544,15 +1573,7 @@
                         }
 
                         doc.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-                        heightLeft -= (doc.internal.pageSize.getHeight() - position);
-
-                        while (heightLeft >= 0) {
-                            doc.addPage();
-                            position = 20; // Reset position for new page top margin
-                            doc.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-                            heightLeft -= doc.internal.pageSize.getHeight();
-                        }
-                        return doc.internal.pageSize.height - heightLeft; // Return space used on last page
+                        return imgHeight + 20; // Return height used (image + padding)
                     });
                 };
 
@@ -1562,11 +1583,22 @@
                 doc.setFontSize(10);
                 doc.text(`Periode: ${reportStartDateInput.value} s/d ${reportEndDateInput.value}`, 20, 45);
                 doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID')}`, 20, 55);
+                // Add filter info
+                if (filterMasterDataType.value !== 'all') {
+                    doc.text(`Filter Tipe Pihak: ${filterMasterDataType.value}`, 20, 70);
+                }
 
-                let currentY = 70; // Starting Y position after header info
 
-                addTableToPdf(reportTable, "Detail Transaksi", currentY).then(tableHeight => {
-                    currentY += tableHeight + 20; // Update Y for next element
+                let currentY = 85; // Starting Y position after header info and filter
+
+                addTableToPdf(reportTable, "Detail Transaksi", currentY).then(heightOfFirstTable => {
+                    currentY += heightOfFirstTable; // Update Y for next element
+
+                    // Check if new page is needed for summary and second table
+                    if (currentY + 100 > doc.internal.pageSize.getHeight()) { // Estimate space needed for summary + next table title
+                        doc.addPage();
+                        currentY = 30; // Reset Y for new page
+                    }
 
                     // Add summary box
                     doc.setFontSize(10);
@@ -1574,6 +1606,12 @@
                     doc.text(`Total Kredit: ${totalKreditReport.textContent}`, 20, currentY + 15);
                     doc.text(`Saldo Akhir: ${finalBalanceReport.textContent}`, 20, currentY + 30);
                     currentY += 45; // Space for summary
+
+                    // Check if new page is needed for second table
+                    if (currentY + 50 > doc.internal.pageSize.getHeight()) { // Estimate space needed for next table title
+                        doc.addPage();
+                        currentY = 30; // Reset Y for new page
+                    }
 
                     // Add second table (Master Data Balance)
                     addTableToPdf(balanceTable, "Laporan Saldo per Customer/Supplier", currentY).then(() => {
