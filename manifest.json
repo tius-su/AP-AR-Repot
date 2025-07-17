@@ -1,8 +1,8 @@
 {
   "name": "Aplikasi Laporan Transaksi Roda Toko",
-  "short_name": "Roda Toko",
+  "short_name": "Toko Maju Jaya",
   "description": "Aplikasi untuk mencatat laporan transaksi supplier dan customer.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3498db",
